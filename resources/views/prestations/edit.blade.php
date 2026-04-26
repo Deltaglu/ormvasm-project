@@ -1,44 +1,68 @@
 @extends('layouts.app')
 
-@section('title', 'Modifier prestation')
+@section('title', 'Modifier prestation — '.config('app.name'))
 
 @section('content')
 <x-page-header title="Modifier la prestation" subtitle="Mettre à jour le tarif ou le libellé.">
-    <a href="{{ route('prestations.index') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Retour
+    <a href="{{ route('prestations.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Retour
     </a>
 </x-page-header>
 
 <div class="ormsa-surface ormsa-form-card">
-    <div class="card-body">
-        <form method="post" action="{{ route('prestations.update', $prestation) }}" class="row g-3">
-            @csrf
-            @method('PUT')
-            <div class="col-md-4">
-                <label class="form-label" for="code">Code</label>
-                <input type="text" name="code" id="code" class="form-control" value="{{ old('code', $prestation->code) }}" required>
-            </div>
-            <div class="col-md-8">
-                <label class="form-label" for="libelle">Libellé</label>
-                <input type="text" name="libelle" id="libelle" class="form-control" value="{{ old('libelle', $prestation->libelle) }}" required>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label" for="tarif">Tarif (DH)</label>
-                <input type="number" step="0.01" min="0" name="tarif" id="tarif" class="form-control" value="{{ old('tarif', $prestation->tarif) }}" required>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label" for="unite">Unité</label>
-                <input type="text" name="unite" id="unite" class="form-control" value="{{ old('unite', $prestation->unite) }}">
-            </div>
-            <div class="col-12">
-                <label class="form-label" for="description">Description</label>
-                <textarea name="description" id="description" class="form-control" rows="3">{{ old('description', $prestation->description) }}</textarea>
-            </div>
-            <div class="col-12 pt-2">
-                <button type="submit" class="btn btn-primary">Mettre à jour</button>
-                <a href="{{ route('prestations.index') }}" class="btn btn-outline-secondary">Annuler</a>
-            </div>
-        </form>
+    <div class="ormsa-surface-header">
+        <i class="bi bi-pencil-square"></i> Modification de la prestation
     </div>
+
+    <form method="post" action="{{ route('prestations.update', $prestation) }}" class="row g-3 p-0">
+        @csrf @method('PUT')
+
+        <div class="col-md-4">
+            <label class="form-label" for="code">Code <span class="text-danger">*</span></label>
+            <input type="text" name="code" id="code"
+                   class="form-control @error('code') is-invalid @enderror"
+                   value="{{ old('code', $prestation->code) }}" required>
+            @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="col-md-8">
+            <label class="form-label" for="libelle">Libellé <span class="text-danger">*</span></label>
+            <input type="text" name="libelle" id="libelle"
+                   class="form-control @error('libelle') is-invalid @enderror"
+                   value="{{ old('libelle', $prestation->libelle) }}" required>
+            @error('libelle')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label" for="tarif">Tarif (DH) <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" min="0" name="tarif" id="tarif"
+                   class="form-control fw-semibold text-primary @error('tarif') is-invalid @enderror"
+                   value="{{ old('tarif', $prestation->tarif) }}" required>
+            @error('tarif')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label" for="unite">Unité</label>
+            <input type="text" name="unite" id="unite"
+                   class="form-control @error('unite') is-invalid @enderror"
+                   value="{{ old('unite', $prestation->unite) }}">
+            @error('unite')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="col-12">
+            <label class="form-label" for="description">Description détaillée</label>
+            <textarea name="description" id="description"
+                      class="form-control @error('description') is-invalid @enderror"
+                      rows="3">{{ old('description', $prestation->description) }}</textarea>
+            @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="col-12 d-flex gap-2 pt-3 mt-4" style="border-top:1px solid var(--border);">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> Mettre à jour
+            </button>
+            <a href="{{ route('prestations.index') }}" class="btn btn-outline-secondary">Annuler</a>
+        </div>
+    </form>
 </div>
 @endsection

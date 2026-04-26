@@ -1,15 +1,15 @@
 @props(['title', 'subtitle' => null])
 
-<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+<div class="ormsa-page-header">
     <div>
-        <h1 class="ormsa-heading h4 mb-1 fw-semibold">{{ $title }}</h1>
+        <h1 class="ormsa-page-header-title">{{ $title }}</h1>
         @if($subtitle)
-            <p class="text-secondary mb-0 small">{{ $subtitle }}</p>
+            <p class="ormsa-page-header-sub">{{ $subtitle }}</p>
         @endif
     </div>
     @isset($slot)
         @if(!$slot->isEmpty())
-            <div class="d-flex flex-wrap gap-2 align-items-center">{{ $slot }}</div>
+            <div class="ormsa-page-header-actions">{{ $slot }}</div>
         @endif
     @endisset
 </div>

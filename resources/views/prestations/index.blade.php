@@ -1,49 +1,50 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Prestations — '.config('app.name'))
 
 @section('content')
 <x-page-header title="Prestations" subtitle="Catalogue des prestations facturables et tarifs.">
-    <a href="{{ route('prestations.export') }}" class="btn btn-outline-success">
-        <i class="bi bi-file-earmark-excel"></i>
+    <a href="{{ route('prestations.export') }}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-file-earmark-excel"></i> Exporter
     </a>
-    <a href="{{ route('prestations.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i>
+    <a href="{{ route('prestations.create') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Nouvelle prestation
     </a>
 </x-page-header>
 
 <div class="ormsa-surface ormsa-table-wrap">
     <div class="ormsa-surface-header">
-        <i class="bi bi-list-ul me-2 text-secondary"></i>Liste des prestations
+        <i class="bi bi-list-ul"></i> Liste des prestations
     </div>
-    <div class="card-body border-bottom">
-        <form method="get" action="{{ route('prestations.index') }}" class="row g-2">
-            <div class="col-md-4" style="position: relative;">
-                <input type="text" name="search" id="searchInput" class="form-control" placeholder="Code ou libellé" value="{{ request('search') }}" autocomplete="off" list="none">
-                <datalist id="none"></datalist>
-                <div id="suggestions" style="position: absolute; background: white; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; width: 100%; border-radius: 0 0 4px 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+
+    {{-- Toolbar --}}
+    <div class="ormsa-table-toolbar">
+        <form method="get" action="{{ route('prestations.index') }}" class="d-flex gap-2 flex-wrap align-items-center">
+            <div style="position:relative; min-width:260px; flex:1;">
+                <i class="bi bi-search" style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:.9rem;pointer-events:none;"></i>
+                <input type="text" name="search" id="searchInput"
+                       class="form-control" style="padding-left:2.2rem;"
+                       placeholder="Code ou libellé…"
+                       value="{{ request('search') }}" autocomplete="off">
+                <div id="suggestions" class="search-suggestions"></div>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search"></i>
-                </button>
-            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Rechercher</button>
             @if(request('search'))
-            <div class="col-md-2">
-                <a href="{{ route('prestations.index') }}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-x"></i>
+                <a href="{{ route('prestations.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x"></i> Effacer
                 </a>
-            </div>
             @endif
         </form>
     </div>
-    <div>
+
+    {{-- Table --}}
+    <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Code</th>
                     <th>Libellé</th>
-                    <th>Tarif</th>
+                    <th class="text-end">Tarif unitaire</th>
                     <th>Unité</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -53,8 +54,8 @@
                     <tr>
                         <td><code class="small">{{ $prestation->code }}</code></td>
                         <td class="fw-medium">{{ $prestation->libelle }}</td>
-                        <td>{{ number_format($prestation->tarif, 2, ',', ' ') }} DH</td>
-                        <td>{{ $prestation->unite ?: '—' }}</td>
+                        <td class="text-end fw-semibold">{{ number_format($prestation->tarif, 2, ',', ' ') }} DH</td>
+                        <td><span class="badge text-bg-light border text-muted">{{ $prestation->unite ?: '—' }}</span></td>
                         <td class="text-end">
                             <div class="ormsa-actions">
                                 <a href="{{ route('prestations.show', $prestation) }}" class="btn btn-outline-secondary" title="Voir">
@@ -67,66 +68,52 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center text-secondary py-5">Aucune prestation.</td></tr>
+                    <tr>
+                        <td colspan="5">
+                            <div class="ormsa-empty">
+                                <i class="bi bi-list-ul"></i>
+                                Aucune prestation trouvée.
+                            </div>
+                        </td>
+                    </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <div class="card-body border-top ormsa-pagination">{{ $prestations->links() }}</div>
+    
+    <div class="ormsa-pagination">{{ $prestations->links() }}</div>
 </div>
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var searchInput = document.getElementById('searchInput');
-    var suggestionsBox = document.getElementById('suggestions');
-    var timeout;
-
-    if (!searchInput || !suggestionsBox) {
-        return;
-    }
-
-    searchInput.addEventListener('input', function() {
-        clearTimeout(timeout);
-        var query = this.value.trim();
-
-        if (query.length < 2) {
-            suggestionsBox.style.display = 'none';
-            return;
-        }
-
-        timeout = setTimeout(function() {
-            var url = '{{ route('prestations.search') }}?q=' + encodeURIComponent(query);
-            
-            fetch(url)
-                .then(function(response) { return response.json(); })
-                .then(function(data) {
-                    if (data.length === 0) {
-                        suggestionsBox.style.display = 'none';
-                        return;
-                    }
-
-                    suggestionsBox.innerHTML = data.map(function(item) {
-                        return '<div style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;" data-id="' + item.id + '">' +
-                            '<strong>' + item.code + '</strong> - ' + item.libelle +
-                            '</div>';
-                    }).join('');
-                    suggestionsBox.style.display = 'block';
-
-                    suggestionsBox.querySelectorAll('div[data-id]').forEach(function(div) {
-                        div.addEventListener('click', function() {
-                            var id = div.getAttribute('data-id');
-                            window.location.href = '/prestations/' + id;
-                        });
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('searchInput');
+    const box   = document.getElementById('suggestions');
+    if (!input || !box) return;
+    let timer;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        if (q.length < 2) { box.style.display = 'none'; return; }
+        timer = setTimeout(() => {
+            fetch('{{ route("prestations.search") }}?q=' + encodeURIComponent(q))
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.length) { box.style.display = 'none'; return; }
+                    box.innerHTML = data.map(item => `
+                        <div class="suggestion-item" data-id="${item.id}">
+                            <strong>${item.code}</strong> — ${item.libelle}
+                        </div>
+                    `).join('');
+                    box.style.display = 'block';
+                    box.querySelectorAll('.suggestion-item').forEach(el => {
+                        el.addEventListener('click', () => window.location.href = '/prestations/' + el.dataset.id);
                     });
                 });
-        }, 300);
+        }, 280);
     });
-
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
-            suggestionsBox.style.display = 'none';
-        }
+    document.addEventListener('click', e => {
+        if (!input.contains(e.target) && !box.contains(e.target)) box.style.display = 'none';
     });
 });
 </script>

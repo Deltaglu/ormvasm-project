@@ -3,53 +3,108 @@
 @section('title', 'Connexion — '.config('app.name'))
 
 @section('content')
-<div class="row g-0 ormsa-auth-split">
+<div class="ormsa-auth-split row g-0" style="min-height:100vh;">
+
+    {{-- Hero panel --}}
     <div class="col-lg-6 d-none d-lg-flex ormsa-auth-hero">
-        <div class="ormsa-auth-hero-inner w-100">
-            <div class="ormsa-brand-mark mb-4 bg-transparent border border-light border-opacity-25" style="width: 3rem; height: 3rem; font-size: 1rem;"><img src="{{ asset('images/logo.png') }}" alt="ORMVA" style="height: 2rem;"></div>
-            <h2 class="h3 fw-semibold mb-3">ORMVASM</h2>
-            <p class="text-white-50 mb-4 lh-lg" style="max-width: 28rem;">
+        <div style="max-width:420px;">
+            <div class="ormsa-brand-mark mb-4" style="width:3rem;height:3rem;">
+                <img src="{{ asset('images/logo.png') }}" alt="ORMVA" style="height:2rem;">
+            </div>
+            <h2 class="fw-bold text-white mb-3" style="font-size:1.9rem;letter-spacing:-.02em;line-height:1.2;">
+                ORMVASM<br><span style="color:rgba(255,255,255,.55);font-size:1rem;font-weight:500;letter-spacing:0;">Système de gestion des recettes</span>
+            </h2>
+            <p class="mb-4" style="color:rgba(255,255,255,.6);line-height:1.75;font-size:.92rem;">
                 Plateforme de gestion des recettes et du recouvrement. Suivi des titres, paiements et quittances par société.
             </p>
-            <ul class="list-unstyled text-white-50 small mb-0">
-                <li class="mb-2"><i class="bi bi-check-circle me-2 text-primary"></i> Multi-tenant par code entreprise</li>
-                <li class="mb-2"><i class="bi bi-check-circle me-2 text-primary"></i> Traçabilité des encaissements</li>
-                <li><i class="bi bi-check-circle me-2 text-primary"></i> Quittances PDF</li>
+            <ul class="list-unstyled mb-0" style="color:rgba(255,255,255,.65);font-size:.88rem;">
+                <li class="mb-2 d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill text-success"></i> Multi-tenant par code entreprise
+                </li>
+                <li class="mb-2 d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill text-success"></i> Traçabilité des encaissements
+                </li>
+                <li class="d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill text-success"></i> Quittances PDF automatiques
+                </li>
             </ul>
         </div>
     </div>
-    <div class="col-lg-6 ormsa-auth-panel bg-light">
-        <div class="ormsa-auth-card card">
-            <div class="card-body">
-                <p class="text-secondary small text-uppercase fw-semibold mb-1" style="letter-spacing: 0.06em;">Accès sécurisé</p>
-                <h1 class="h4 fw-semibold mb-1">Connexion</h1>
-                <p class="text-secondary small mb-4">{{ config('app.name') }}</p>
+
+    {{-- Login panel --}}
+    <div class="col-lg-6 ormsa-auth-panel">
+        <div class="ormsa-auth-card">
+            <div class="card-body p-0">
+                {{-- Header --}}
+                <div class="mb-5">
+                    <p class="mb-1" style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray-400);">Accès sécurisé</p>
+                    <h1 class="mb-0" style="font-size:1.6rem;font-weight:800;letter-spacing:-.02em;color:var(--gray-900);">Connexion</h1>
+                    <p class="mt-1 mb-0" style="color:var(--gray-400);font-size:.875rem;">{{ config('app.name') }}</p>
+                </div>
+
+                {{-- Errors --}}
+                @if($errors->any())
+                    <div class="alert alert-danger mb-4">
+                        <div class="d-flex gap-2 align-items-start">
+                            <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                            <div>
+                                @foreach($errors->all() as $error)
+                                    <div>{{ $error }}</div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <form method="post" action="{{ route('login.attempt') }}">
                     @csrf
+
                     <div class="mb-3">
                         <label class="form-label" for="company_code">Code entreprise</label>
-                        <input type="text" name="company_code" id="company_code" value="{{ old('company_code') }}" class="form-control form-control-lg" required autofocus autocomplete="organization" placeholder="Ex. soc1">
+                        <input type="text" name="company_code" id="company_code"
+                               value="{{ old('company_code') }}"
+                               class="form-control @error('company_code') is-invalid @enderror"
+                               required autofocus autocomplete="organization"
+                               placeholder="Ex. soc1">
+                        @error('company_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label" for="email">Adresse e-mail</label>
-                        <input type="email" name="email" id="email" value="{{ old('email') }}" class="form-control form-control-lg" required autocomplete="username">
+                        <input type="email" name="email" id="email"
+                               value="{{ old('email') }}"
+                               class="form-control @error('email') is-invalid @enderror"
+                               required autocomplete="username">
+                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="mb-3">
+
+                    <div class="mb-4">
                         <label class="form-label" for="password">Mot de passe</label>
-                        <input type="password" name="password" id="password" class="form-control form-control-lg" required autocomplete="current-password">
+                        <input type="password" name="password" id="password"
+                               class="form-control @error('password') is-invalid @enderror"
+                               required autocomplete="current-password">
+                        @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="form-check mb-4">
                         <input class="form-check-input" type="checkbox" name="remember" id="remember" value="1">
-                        <label class="form-check-label small" for="remember">Se souvenir de moi sur cet appareil</label>
+                        <label class="form-check-label" for="remember" style="font-size:.85rem;color:var(--gray-500);">
+                            Se souvenir de moi
+                        </label>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg w-100">Se connecter</button>
+
+                    <button type="submit" class="btn btn-primary w-100" style="padding:.65rem 1rem;font-size:.95rem;font-weight:600;">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Se connecter
+                    </button>
                 </form>
-                <p class="text-muted small mt-4 mb-0 border-top pt-3">
-                    <span class="fw-medium">Démo :</span>
-                    <code class="user-select-all">soc1</code> ·
-                    <code class="user-select-all">admin@test.com</code> ·
-                    <code class="user-select-all">password</code>
-                </p>
+
+                {{-- Demo hint --}}
+                <div class="mt-4 pt-3" style="border-top:1px solid var(--border);">
+                    <p class="mb-0" style="font-size:.78rem;color:var(--gray-400);">
+                        <strong style="color:var(--gray-500);">Démo :</strong>
+                        <code>soc1</code> · <code>admin@test.com</code> · <code>password</code>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
