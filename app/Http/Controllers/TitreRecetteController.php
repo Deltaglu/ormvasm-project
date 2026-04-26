@@ -12,7 +12,11 @@ class TitreRecetteController extends Controller
 {
     public function index(): View
     {
-        $titresRecettes = TitreRecette::query()->with('agriculteur')->latest('date_emission')->get();
+        $titresRecettes = TitreRecette::withTrashed()
+            ->with('agriculteur')
+            ->orderByRaw('deleted_at IS NOT NULL')
+            ->latest('date_emission')
+            ->get();
 
         $titresRecettes->each(function ($titre) {
             $titre->calculatePenalty();

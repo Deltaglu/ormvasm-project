@@ -54,7 +54,12 @@
             <tbody>
                 @foreach($titresRecettes as $titre)
                     <tr>
-                        <td><code class="small">{{ $titre->numero }}</code></td>
+                        <td>
+                            <code class="small">{{ $titre->numero }}</code>
+                            @if($titre->trashed())
+                                <span class="badge bg-danger ms-1" style="font-size: 0.6rem; text-transform: uppercase;">Supprimé</span>
+                            @endif
+                        </td>
                         <td data-order="{{ $titre->date_emission->format('Y-m-d') }}">{{ $titre->date_emission->format('d/m/Y') }}</td>
                         <td data-order="{{ $titre->date_echeance ? $titre->date_echeance->format('Y-m-d') : '9999-12-31' }}">
                             @if($titre->date_echeance)
@@ -80,9 +85,31 @@
                                 <a href="{{ route('titres-recettes.show', $titre) }}" class="btn btn-outline-secondary" title="Voir">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="{{ route('titres-recettes.edit', $titre) }}" class="btn btn-outline-primary" title="Modifier">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
+                                
+                                @if($titre->trashed())
+                                    <form action="{{ route('trash.restore', ['type' => 'titre', 'id' => $titre->id]) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-outline-success" type="submit" title="Restaurer">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('trash.force-delete', ['type' => 'titre', 'id' => $titre->id]) }}" method="POST" class="d-inline">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-outline-danger btn-delete-confirm" type="submit" title="Supprimer Définitivement">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                @else
+                                    <a href="{{ route('titres-recettes.edit', $titre) }}" class="btn btn-outline-primary" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form action="{{ route('titres-recettes.destroy', $titre) }}" method="POST" class="d-inline">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-outline-danger btn-delete-confirm" type="button" title="Supprimer">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -100,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
         paging: false,
         info: false,
         dom: 'rt',
-        order: [[1, 'desc']]
+        order: []
     });
 
     const input = document.getElementById('titreSearchInput');

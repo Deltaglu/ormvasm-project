@@ -54,7 +54,12 @@
             <tbody>
             @foreach($paiements as $p)
                 <tr>
-                    <td class="fw-medium">{{ $p->reference }}</td>
+                    <td class="fw-medium">
+                        {{ $p->reference }}
+                        @if($p->trashed())
+                            <span class="badge bg-danger ms-1" style="font-size: 0.6rem; text-transform: uppercase;">Supprimé</span>
+                        @endif
+                    </td>
                     <td data-order="{{ $p->date_paiement->format('Y-m-d') }}">{{ $p->date_paiement->format('d/m/Y') }}</td>
                     <td>
                         <div class="fw-medium" style="font-size:.85rem;">{{ $p->titreRecette?->numero }}</div>
@@ -79,20 +84,36 @@
                             <a href="{{ route('paiements.show', $p) }}" class="btn btn-outline-secondary" title="Voir">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{{ route('paiements.edit', $p) }}" class="btn btn-outline-primary" title="Modifier">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            @if($p->quittance)
-                                <a href="{{ route('quittances.pdf', $p->quittance) }}" class="btn btn-outline-secondary" title="PDF">
-                                    <i class="bi bi-file-earmark-pdf text-danger"></i>
+                            
+                            @if($p->trashed())
+                                <form action="{{ route('trash.restore', ['type' => 'paiement', 'id' => $p->id]) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button class="btn btn-outline-success" type="submit" title="Restaurer">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('trash.force-delete', ['type' => 'paiement', 'id' => $p->id]) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-outline-danger btn-delete-confirm" type="submit" title="Supprimer Définitivement">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <a href="{{ route('paiements.edit', $p) }}" class="btn btn-outline-primary" title="Modifier">
+                                    <i class="bi bi-pencil"></i>
                                 </a>
+                                @if($p->quittance)
+                                    <a href="{{ route('quittances.pdf', $p->quittance) }}" class="btn btn-outline-secondary" title="PDF">
+                                        <i class="bi bi-file-earmark-pdf text-danger"></i>
+                                    </a>
+                                @endif
+                                <form action="{{ route('paiements.destroy', $p) }}" method="post" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-outline-danger btn-delete-confirm" type="button" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
                             @endif
-                            <form action="{{ route('paiements.destroy', $p) }}" method="post" class="d-inline">
-                                @csrf @method('DELETE')
-                                <button class="btn btn-outline-danger btn-delete-confirm" type="button" title="Supprimer">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
                         </div>
                     </td>
                 </tr>
@@ -109,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
         language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
         paging: false,
         info: false,
-        order: [[1, 'desc']], // Sort by date by default
+        order: [],
         dom: 'rt',
     });
 

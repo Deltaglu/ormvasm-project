@@ -42,7 +42,7 @@ class Paiement extends Model
         $prefix = 'PAI';
         $year = date('Y');
         $month = date('m');
-        $latest = self::where('reference', 'like', $prefix . $year . $month . '%')
+        $latest = self::withTrashed()->where('reference', 'like', $prefix . $year . $month . '%')
             ->orderBy('reference', 'desc')
             ->first();
 

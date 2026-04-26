@@ -52,7 +52,12 @@
             @foreach($agriculteurs as $agriculteur)
                 <tr>
                     <td><code>{{ $agriculteur->cin }}</code></td>
-                    <td class="fw-medium">{{ $agriculteur->prenom }} {{ $agriculteur->nom }}</td>
+                    <td class="fw-medium">
+                        {{ $agriculteur->prenom }} {{ $agriculteur->nom }}
+                        @if($agriculteur->trashed())
+                            <span class="badge bg-danger ms-2" style="font-size: 0.65rem; letter-spacing: 0.5px; text-transform: uppercase;">Supprimé</span>
+                        @endif
+                    </td>
                     <td>{{ $agriculteur->telephone ?? '—' }}</td>
                     <td>{{ $agriculteur->email ?? '—' }}</td>
                     <td>
@@ -60,15 +65,31 @@
                             <a href="{{ route('agriculteurs.show', $agriculteur) }}" class="btn btn-outline-primary" title="Voir">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{{ route('agriculteurs.edit', $agriculteur) }}" class="btn btn-outline-secondary" title="Modifier">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form action="{{ route('agriculteurs.destroy', $agriculteur) }}" method="POST" class="d-inline">
-                                @csrf @method('DELETE')
-                                <button type="button" class="btn btn-outline-danger btn-delete-confirm" title="Supprimer">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                            
+                            @if($agriculteur->trashed())
+                                <form action="{{ route('trash.restore', ['type' => 'agriculteur', 'id' => $agriculteur->id]) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button class="btn btn-outline-success" type="submit" title="Restaurer">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('trash.force-delete', ['type' => 'agriculteur', 'id' => $agriculteur->id]) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-outline-danger btn-delete-confirm" type="submit" title="Supprimer Définitivement">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <a href="{{ route('agriculteurs.edit', $agriculteur) }}" class="btn btn-outline-secondary" title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('agriculteurs.destroy', $agriculteur) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button type="button" class="btn btn-outline-danger btn-delete-confirm" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -87,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
         paging: false,
         info: false,
         dom: 'rt', 
-        order: [[1, 'asc']]
+        order: []
     });
 
     const input = document.getElementById('customSearchInput');

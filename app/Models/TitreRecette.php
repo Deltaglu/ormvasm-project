@@ -55,7 +55,7 @@ class TitreRecette extends Model
     {
         $prefix = 'TR';
         $year = date('Y');
-        $latest = self::where('numero', 'like', $prefix . $year . '%')
+        $latest = self::withTrashed()->where('numero', 'like', $prefix . $year . '%')
             ->orderBy('numero', 'desc')
             ->first();
 

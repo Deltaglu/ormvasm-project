@@ -111,7 +111,7 @@ class PaiementService
     private function nextQuittanceNumber(): string
     {
         $prefix = 'QUIT-'.now()->format('Y').'-';
-        $lastNumero = Quittance::query()
+        $lastNumero = Quittance::withTrashed()
             ->where('numero', 'like', $prefix.'%')
             ->orderByDesc('numero')
             ->value('numero');

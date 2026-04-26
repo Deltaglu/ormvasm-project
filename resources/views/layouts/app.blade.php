@@ -249,6 +249,25 @@
             </div>
         </header>
 
+        <!-- Universal PDF Preview Modal -->
+    <div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" style="height: 90vh;">
+            <div class="modal-content h-100 border-0 shadow-lg" style="border-radius: 1rem; overflow: hidden;">
+                <div class="modal-header border-0 bg-dark text-white py-2 px-3">
+                    <h6 class="modal-title mb-0 d-flex align-items-center">
+                        <i class="bi bi-file-earmark-pdf me-2 text-danger"></i> Aperçu du document
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 bg-secondary">
+                    <iframe id="pdfPreviewFrame" src="" width="100%" height="100%" style="border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Floating Chat -->
+
         {{-- Content --}}
         <main class="ormsa-main">
             <div class="ormsa-content">
@@ -694,6 +713,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             });
+            
+            // Global Loader Link Check
+            const links = document.querySelectorAll('a');
+            const loader = document.getElementById('loader');
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    // Do not show loader for PDF previews or hash links
+                    if (link.classList.contains('btn-preview-pdf') || (link.getAttribute('href') && link.getAttribute('href').startsWith('#'))) {
+                        return;
+                    }
+                    if (link.hostname === window.location.hostname && !link.getAttribute('target')) {
+                        if (loader) loader.classList.add('active');
+                    }
+                });
+            });
         });
     </script>
 
@@ -782,10 +816,28 @@ document.addEventListener('DOMContentLoaded', function () {
         .ai-chat-footer button { width: 38px; height: 38px; border-radius: 50%; border: none; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
         .ai-chat-footer button:hover { background: #059669; }
         .ai-typing { font-style: italic; font-size: 0.75rem; color: var(--gray-400); }
+
+        /* Prevent loader from showing when a modal is open */
+        body.modal-open #pageLoader { display: none !important; opacity: 0 !important; visibility: hidden !important; }
     </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Global PDF Preview Logic
+            document.querySelectorAll('.btn-preview-pdf').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Force hide the loader (using correct ID and class)
+                    const loader = document.getElementById('pageLoader');
+                    if (loader) loader.classList.add('hidden');
+                    
+                    const url = this.getAttribute('href');
+                    const modal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+                    document.getElementById('pdfPreviewFrame').src = url;
+                    modal.show();
+                });
+            });
+
             const toggle = document.getElementById('aiChatToggle');
             const windowEl = document.getElementById('aiChatWindow');
             const close = document.getElementById('closeAiChat');

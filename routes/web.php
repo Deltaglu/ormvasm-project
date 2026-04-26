@@ -53,7 +53,10 @@ Route::middleware(['auth', 'tenant.session'])->group(function () {
     Route::get('agriculteurs/export', function() {
         return Excel::download(new AgriculteursExport, 'agriculteurs.xlsx');
     })->name('agriculteurs.export');
-    Route::resource('agriculteurs', AgriculteurController::class);
+    Route::get('/agriculteurs/{agriculteur}/releve', [App\Http\Controllers\AgriculteurController::class, 'releve'])
+        ->name('agriculteurs.releve')
+        ->withTrashed();
+    Route::resource('agriculteurs', App\Http\Controllers\AgriculteurController::class)->withTrashed();
 
     Route::get('prestations/search', [PrestationController::class, 'search'])->name('prestations.search');
     Route::get('prestations/export', function() {
@@ -71,14 +74,14 @@ Route::middleware(['auth', 'tenant.session'])->group(function () {
     Route::get('paiements/export', function() {
         return Excel::download(new PaiementsExport, 'paiements.xlsx');
     })->name('paiements.export');
-    Route::resource('paiements', PaiementController::class);
+    Route::resource('paiements', PaiementController::class)->withTrashed();
 
     Route::get('quittances/search', [QuittanceController::class, 'search'])->name('quittances.search');
     Route::get('quittances/export', function() {
         return Excel::download(new QuittancesExport, 'quittances.xlsx');
     })->name('quittances.export');
     Route::get('quittances', [QuittanceController::class, 'index'])->name('quittances.index');
-    Route::get('quittances/{quittance}', [QuittanceController::class, 'show'])->name('quittances.show');
-    Route::get('quittances/{quittance}/pdf', [QuittanceController::class, 'pdf'])->name('quittances.pdf');
+    Route::get('quittances/{quittance}', [QuittanceController::class, 'show'])->name('quittances.show')->withTrashed();
+    Route::get('quittances/{quittance}/pdf', [QuittanceController::class, 'pdf'])->name('quittances.pdf')->withTrashed();
     Route::get('quittances/{quittance}/pdf/download', [QuittanceController::class, 'download'])->name('quittances.download');
 });

@@ -4,12 +4,25 @@
 
 @section('content')
 <x-page-header title="{{ $agriculteur->prenom }} {{ $agriculteur->nom }}" subtitle="Fiche agriculteur — historique des titres et paiements.">
-    <a href="{{ route('agriculteurs.edit', $agriculteur) }}" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-pencil"></i> Modifier
-    </a>
-    <a href="{{ route('agriculteurs.index') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-list"></i> Liste
-    </a>
+    <div class="d-flex gap-2">
+        @if($agriculteur->trashed())
+            <form action="{{ route('trash.restore', ['type' => 'agriculteur', 'id' => $agriculteur->id]) }}" method="POST" class="m-0">
+                @csrf
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="bi bi-arrow-counterclockwise"></i> Restaurer
+                </button>
+            </form>
+        @endif
+        <a href="{{ route('agriculteurs.releve', $agriculteur) }}" class="btn btn-outline-primary btn-sm btn-preview-pdf">
+            <i class="bi bi-printer"></i> Imprimer Relevé
+        </a>
+        <a href="{{ route('agriculteurs.edit', $agriculteur) }}" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-pencil"></i> Modifier
+        </a>
+        <a href="{{ route('agriculteurs.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-list"></i> Liste
+        </a>
+    </div>
 </x-page-header>
 
 {{-- Info Card --}}

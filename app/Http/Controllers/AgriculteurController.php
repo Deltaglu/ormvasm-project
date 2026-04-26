@@ -11,7 +11,11 @@ class AgriculteurController extends Controller
 {
     public function index(): View
     {
-        $agriculteurs = Agriculteur::query()->orderBy('nom')->orderBy('prenom')->get();
+        $agriculteurs = Agriculteur::withTrashed()
+            ->orderByRaw('deleted_at IS NOT NULL')
+            ->orderBy('nom')
+            ->orderBy('prenom')
+            ->get();
         
         return view('agriculteurs.index', compact('agriculteurs'));
     }
@@ -39,7 +43,11 @@ class AgriculteurController extends Controller
 
     public function show(Agriculteur $agriculteur): View
     {
-        $agriculteur->load(['titresRecettes.paiements.quittance']);
+        $agriculteur->load([
+            'titresRecettes' => function($q) { $q->withTrashed(); },
+            'titresRecettes.paiements' => function($q) { $q->withTrashed(); },
+            'titresRecettes.paiements.quittance' => function($q) { $q->withTrashed(); }
+        ]);
         
         TitreRecette::refreshPenaltiesFor($agriculteur->titresRecettes);
         
@@ -83,7 +91,7 @@ class AgriculteurController extends Controller
         }
 
         $terms = explode(' ', trim($query));
-        $resultsQuery = Agriculteur::query();
+        $resultsQuery = Agriculteur::withTrashed();
 
         foreach ($terms as $term) {
             if (!empty($term)) {
@@ -96,8 +104,22 @@ class AgriculteurController extends Controller
             }
         }
 
-        $results = $resultsQuery->limit(10)->get(['id', 'nom', 'prenom', 'cin']);
+        $results = $resultsQuery->limit(10)->get(['id', 'nom', 'prenom', 'cin', 'deleted_at']);
 
         return response()->json($results);
+    }
+
+    public function releve(Agriculteur $agriculteur)
+    {
+        $agriculteur->load([
+            'titresRecettes' => function($q) { $q->withTrashed(); },
+            'titresRecettes.paiements' => function($q) { $q->withTrashed(); },
+            'titresRecettes.paiements.quittance' => function($q) { $q->withTrashed(); }
+        ]);
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfs.releve', compact('agriculteur'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream("Releve_{$agriculteur->nom}_{$agriculteur->cin}.pdf");
     }
 }

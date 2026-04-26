@@ -32,7 +32,12 @@ class TrashController extends Controller
         $model = $this->getModelByType($type, $id, true);
         $model->restore();
 
-        return redirect()->route('trash.index')->with('status', "L'élément a été restauré avec succès.");
+        // Cascading restore for Paiement -> Quittance
+        if ($type === 'paiement' && method_exists($model, 'quittance')) {
+            $model->quittance()->withTrashed()->restore();
+        }
+
+        return redirect()->back()->with('status', "L'élément a été restauré avec succès.");
     }
 
     public function forceDelete(string $type, int $id): RedirectResponse

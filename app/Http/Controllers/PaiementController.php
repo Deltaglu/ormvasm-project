@@ -16,7 +16,11 @@ class PaiementController extends Controller
 
     public function index(): View
     {
-        $paiements = Paiement::query()->with(['titreRecette.agriculteur', 'quittance'])->latest('date_paiement')->get();
+        $paiements = Paiement::withTrashed()
+            ->with(['titreRecette.agriculteur', 'quittance' => function($q) { $q->withTrashed(); }])
+            ->orderByRaw('deleted_at IS NOT NULL')
+            ->latest('date_paiement')
+            ->get();
         $titresRecettes = $this->loadTitresRecettesForForms();
 
         foreach ($paiements as $paiement) {
