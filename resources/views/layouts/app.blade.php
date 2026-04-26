@@ -696,5 +696,151 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     </script>
+
+    {{-- ORMSA AI Assistant --}}
+    <div id="aiChat" class="ai-chat-container">
+        <div id="aiChatWindow" class="ai-chat-window shadow-lg" style="display:none;">
+            <div class="ai-chat-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="ai-avatar"><i class="bi bi-robot"></i></div>
+                    <div>
+                        <div class="fw-bold small">ORMSA AI</div>
+                        <div class="ai-status">En ligne</div>
+                    </div>
+                </div>
+                <button type="button" id="closeAiChat" class="btn-close btn-close-white"></button>
+            </div>
+            <div id="aiChatBody" class="ai-chat-body">
+                <div class="ai-message ai-message-bot">
+                    Bonjour ! Je suis votre assistant ORMSA. Posez-moi n'importe quelle question sur vos finances ou vos agriculteurs !
+                </div>
+            </div>
+            <div class="ai-chat-footer">
+                <input type="text" id="aiChatInput" placeholder="Demandez quelque chose..." autocomplete="off">
+                <button id="sendAiMessage"><i class="bi bi-send-fill"></i></button>
+            </div>
+        </div>
+        <button id="aiChatToggle" class="ai-chat-toggle shadow-lg">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span class="ai-badge">AI</span>
+        </button>
+    </div>
+
+    <style>
+        .ai-chat-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; font-family: 'Inter', sans-serif; }
+        .ai-chat-toggle {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none; color: white; font-size: 1.5rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .ai-chat-toggle:hover { transform: scale(1.1) rotate(5deg); }
+        .ai-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: #ef4444; color: white; font-size: 0.6rem;
+            font-weight: 800; padding: 2px 5px; border-radius: 10px;
+            border: 2px solid white;
+        }
+        .ai-chat-window {
+            position: absolute; bottom: 80px; right: 0;
+            width: 350px; height: 480px;
+            background: #ffffff; /* Solid white background */
+            border-radius: 1.25rem;
+            display: flex; flex-direction: column;
+            overflow: hidden; animation: ai-slide-in 0.3s ease-out;
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
+        }
+        @keyframes ai-slide-in { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .ai-chat-header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; padding: 1.25rem;
+            display: flex; align-items: center; justify-content: space-between;
+            backdrop-filter: blur(10px);
+        }
+        .ai-avatar { width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .ai-status { font-size: 0.7rem; opacity: 0.8; display: flex; align-items: center; gap: 4px; }
+        .ai-status::before { content: ''; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; display: inline-block; }
+        .ai-chat-body { flex: 1; padding: 1.25rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: #fdfdfd; }
+        .ai-message { max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; font-size: 0.85rem; line-height: 1.4; position: relative; }
+        .ai-message-bot { background: #f1f5f9; color: var(--gray-800); border-bottom-left-radius: 2px; }
+        .ai-message-user { background: #10b981; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .ai-chat-footer { padding: 1rem; border-top: 1px solid var(--gray-100); display: flex; gap: 0.5rem; background: #ffffff; }
+        .ai-chat-footer input { 
+            flex: 1; 
+            border: 1px solid var(--gray-200); 
+            border-radius: 2rem; 
+            padding: 0.6rem 1rem; 
+            font-size: 0.85rem; 
+            outline: none; 
+            background: #ffffff !important; /* Force solid background */
+            color: #1e293b;
+        }
+        .ai-chat-footer input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+        .ai-chat-footer button { width: 38px; height: 38px; border-radius: 50%; border: none; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .ai-chat-footer button:hover { background: #059669; }
+        .ai-typing { font-style: italic; font-size: 0.75rem; color: var(--gray-400); }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('aiChatToggle');
+            const windowEl = document.getElementById('aiChatWindow');
+            const close = document.getElementById('closeAiChat');
+            const input = document.getElementById('aiChatInput');
+            const send = document.getElementById('sendAiMessage');
+            const body = document.getElementById('aiChatBody');
+
+            if (!toggle) return;
+
+            toggle.addEventListener('click', () => {
+                const isHidden = windowEl.style.display === 'none';
+                windowEl.style.display = isHidden ? 'flex' : 'none';
+                if (isHidden) input.focus();
+            });
+
+            close.addEventListener('click', () => windowEl.style.display = 'none');
+
+            function addMessage(text, isUser = false) {
+                const msg = document.createElement('div');
+                msg.className = `ai-message ${isUser ? 'ai-message-user' : 'ai-message-bot'}`;
+                msg.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                body.appendChild(msg);
+                body.scrollTop = body.scrollHeight;
+            }
+
+            function handleAsk() {
+                const q = input.value.trim();
+                if (!q) return;
+
+                addMessage(q, true);
+                input.value = '';
+
+                const typing = document.createElement('div');
+                typing.className = 'ai-typing mb-2';
+                typing.innerText = 'ORMSA AI réfléchit...';
+                body.appendChild(typing);
+                body.scrollTop = body.scrollHeight;
+
+                fetch(`{{ route('ai.ask') }}?q=${encodeURIComponent(q)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        typing.remove();
+                        addMessage(data.message);
+                    })
+                    .catch(() => {
+                        typing.remove();
+                        addMessage("Désolé, j'ai rencontré une erreur. Réessayez plus tard !");
+                    });
+            }
+
+            if (send) send.addEventListener('click', handleAsk);
+            if (input) input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleAsk();
+            });
+        });
+    </script>
 </body>
 </html>

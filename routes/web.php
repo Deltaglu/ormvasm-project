@@ -42,6 +42,7 @@ Route::middleware(['auth', 'tenant.session'])->group(function () {
     
     Route::get('/trash', [App\Http\Controllers\TrashController::class, 'index'])->name('trash.index');
     Route::get('/global-search', [App\Http\Controllers\GlobalSearchController::class, 'search'])->name('global-search');
+    Route::get('/ai-assistant/ask', [App\Http\Controllers\AiAssistantController::class, 'ask'])->name('ai.ask');
     Route::post('/trash/restore/{type}/{id}', [App\Http\Controllers\TrashController::class, 'restore'])->name('trash.restore');
     Route::delete('/trash/force-delete/{type}/{id}', [App\Http\Controllers\TrashController::class, 'forceDelete'])->name('trash.force-delete');
 
