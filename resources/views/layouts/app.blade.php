@@ -186,9 +186,6 @@
             <a href="{{ route('prestations.index') }}" class="ormsa-nav-link {{ request()->routeIs('prestations.*') ? 'active' : '' }}">
                 <i class="bi bi-list-ul"></i> Prestations
             </a>
-            <a href="{{ route('activity-logs.index') }}" class="ormsa-nav-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}">
-                <i class="bi bi-journal-text"></i> Journal d'Activité
-            </a>
             <a class="ormsa-nav-link {{ request()->routeIs('titres-recettes.*') ? 'active' : '' }}" href="{{ route('titres-recettes.index') }}">
                 <i class="bi bi-receipt"></i> Titres de recette
             </a>
@@ -197,6 +194,14 @@
             </a>
             <a class="ormsa-nav-link {{ request()->routeIs('quittances.*') ? 'active' : '' }}" href="{{ route('quittances.index') }}">
                 <i class="bi bi-file-earmark-text"></i> Quittances
+            </a>
+
+            <div class="ormsa-nav-section">Administration & Sécurité</div>
+            <a href="{{ route('activity-logs.index') }}" class="ormsa-nav-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}">
+                <i class="bi bi-journal-text"></i> Journal d'Activité
+            </a>
+            <a href="{{ route('trash.index') }}" class="ormsa-nav-link {{ request()->routeIs('trash.*') ? 'active' : '' }}">
+                <i class="bi bi-trash"></i> Corbeille
             </a>
 
             <div class="ormsa-nav-section">Configuration</div>

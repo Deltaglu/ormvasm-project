@@ -39,6 +39,10 @@ Route::middleware(['auth', 'tenant.session'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     Route::get('/activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs.index');
+    
+    Route::get('/trash', [App\Http\Controllers\TrashController::class, 'index'])->name('trash.index');
+    Route::post('/trash/restore/{type}/{id}', [App\Http\Controllers\TrashController::class, 'restore'])->name('trash.restore');
+    Route::delete('/trash/force-delete/{type}/{id}', [App\Http\Controllers\TrashController::class, 'forceDelete'])->name('trash.force-delete');
 
     Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
