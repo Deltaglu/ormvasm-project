@@ -14,35 +14,9 @@ class PaiementController extends Controller
     {
     }
 
-    public function index(Request $request): View
+    public function index(): View
     {
-        $query = Paiement::query()->with(['titreRecette.agriculteur', 'quittance']);
-
-        if ($request->filled('titre_recette_id')) {
-            $query->where('titre_recette_id', $request->integer('titre_recette_id'));
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $terms = explode(' ', trim($search));
-            foreach ($terms as $term) {
-                if (!empty($term)) {
-                    $query->where(function($q) use ($term) {
-                        $q->where('reference', 'like', '%' . $term . '%')
-                          ->orWhereHas('titreRecette', function($q) use ($term) {
-                              $q->where('numero', 'like', '%' . $term . '%')
-                                ->orWhereHas('agriculteur', function($q) use ($term) {
-                                    $q->where('nom', 'like', '%' . $term . '%')
-                                      ->orWhere('prenom', 'like', '%' . $term . '%')
-                                      ->orWhere('cin', 'like', '%' . $term . '%');
-                                });
-                          });
-                    });
-                }
-            }
-        }
-
-        $paiements = $query->latest('date_paiement')->paginate(20)->appends($request->all());
+        $paiements = Paiement::query()->with(['titreRecette.agriculteur', 'quittance'])->latest('date_paiement')->get();
         $titresRecettes = $this->loadTitresRecettesForForms();
 
         foreach ($paiements as $paiement) {

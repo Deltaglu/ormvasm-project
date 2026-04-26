@@ -12,34 +12,32 @@
     </a>
 </x-page-header>
 
-<div class="ormsa-surface ormsa-table-wrap">
-    <div class="ormsa-surface-header">
+<div class="ormsa-surface ormsa-table-wrap p-4">
+    <div class="ormsa-surface-header mb-3 border-bottom-0">
         <i class="bi bi-receipt"></i> Liste des titres de recette
     </div>
 
-    {{-- Toolbar --}}
-    <div class="ormsa-table-toolbar">
-        <form method="get" action="{{ route('titres-recettes.index') }}" class="d-flex gap-2 flex-wrap align-items-center">
-            <div style="position:relative; min-width:260px; flex:1;">
-                <i class="bi bi-search" style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:.9rem;pointer-events:none;"></i>
-                <input type="text" name="search" id="searchInput"
-                       class="form-control" style="padding-left:2.2rem;"
-                       placeholder="Numéro ou agriculteur…"
-                       value="{{ request('search') }}" autocomplete="off">
-                <div id="suggestions" class="search-suggestions"></div>
+    {{-- Restore Custom Search Bar --}}
+    <div class="ormsa-table-toolbar mb-4">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <div style="position:relative; min-width:320px; flex:1; max-width: 500px;">
+                <i class="bi bi-search" style="position:absolute;left:.8rem;top:50%;transform:translateY(-50%);color:var(--gray-500);font-size:1rem;pointer-events:none;z-index:10;"></i>
+                <input type="text" id="titreSearchInput"
+                       class="form-control form-control-lg shadow-sm"
+                       style="padding-left:2.8rem; font-size: 1rem; border-color: var(--gray-300);"
+                       placeholder="Rechercher par Numéro ou Agriculteur..."
+                       autocomplete="off">
+                <div id="suggestions" class="search-suggestions shadow-lg border-0" style="font-size: 0.95rem; margin-top: 5px; border-radius: 8px;"></div>
             </div>
-            <button type="submit" class="btn btn-primary btn-sm">Rechercher</button>
-            @if(request('search'))
-                <a href="{{ route('titres-recettes.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-x"></i> Effacer
-                </a>
-            @endif
-        </form>
+            <button type="button" class="btn btn-primary px-4 shadow-sm" style="height: 48px; font-weight: 600;">
+                <i class="bi bi-search me-2"></i> Rechercher
+            </button>
+        </div>
     </div>
 
     {{-- Table --}}
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 datatable" id="titreTable">
             <thead>
                 <tr>
                     <th>Numéro</th>
@@ -47,20 +45,18 @@
                     <th>Échéance</th>
                     <th>Agriculteur</th>
                     <th class="text-end">Montant</th>
-                    <th class="text-end">Pénalité</th>
                     <th class="text-end">Total</th>
-                    <th class="text-end">Payé</th>
                     <th class="text-end">Solde</th>
                     <th>Statut</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($titresRecettes as $titre)
+                @foreach($titresRecettes as $titre)
                     <tr>
                         <td><code class="small">{{ $titre->numero }}</code></td>
-                        <td>{{ $titre->date_emission->format('d/m/Y') }}</td>
-                        <td>
+                        <td data-order="{{ $titre->date_emission->format('Y-m-d') }}">{{ $titre->date_emission->format('d/m/Y') }}</td>
+                        <td data-order="{{ $titre->date_echeance ? $titre->date_echeance->format('Y-m-d') : '9999-12-31' }}">
                             @if($titre->date_echeance)
                                 {{ $titre->date_echeance->format('d/m/Y') }}
                                 @if($titre->penalite_appliquee)
@@ -71,13 +67,9 @@
                             @endif
                         </td>
                         <td class="fw-medium">{{ $titre->agriculteur?->prenom }} {{ $titre->agriculteur?->nom }}</td>
-                        <td class="text-end">{{ number_format($titre->montant_total, 2, ',', ' ') }} DH</td>
-                        <td class="text-end @if((float) $titre->montant_penalite > 0) text-danger fw-semibold @endif">
-                            {{ number_format($titre->montant_penalite, 2, ',', ' ') }} DH
-                        </td>
-                        <td class="text-end fw-semibold">{{ number_format($titre->montant_total_avec_penalite, 2, ',', ' ') }} DH</td>
-                        <td class="text-end">{{ number_format($titre->montant_paye, 2, ',', ' ') }} DH</td>
-                        <td class="text-end">{{ number_format($titre->solde_restant, 2, ',', ' ') }} DH</td>
+                        <td class="text-end" data-order="{{ $titre->montant_total }}">{{ number_format($titre->montant_total, 2, ',', ' ') }} DH</td>
+                        <td class="text-end fw-semibold" data-order="{{ $titre->montant_total_avec_penalite }}">{{ number_format($titre->montant_total_avec_penalite, 2, ',', ' ') }} DH</td>
+                        <td class="text-end" data-order="{{ $titre->solde_restant }}">{{ number_format($titre->solde_restant, 2, ',', ' ') }} DH</td>
                         <td>
                             <span class="status-pill {{ $titre->statut === 'SOLDE' ? 'status-pill-success' : 'status-pill-warning' }}">
                                 {{ $titre->statut }}
@@ -94,34 +86,34 @@
                             </div>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="11">
-                            <div class="ormsa-empty">
-                                <i class="bi bi-receipt"></i>
-                                Aucun titre de recette trouvé.
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
-
-    <div class="ormsa-pagination">{{ $titresRecettes->links() }}</div>
 </div>
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const input = document.getElementById('searchInput');
+    const table = $('#titreTable').DataTable({
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
+        paging: false,
+        info: false,
+        dom: 'rt',
+        order: [[1, 'desc']]
+    });
+
+    const input = document.getElementById('titreSearchInput');
     const box   = document.getElementById('suggestions');
-    if (!input || !box) return;
     let timer;
+
     input.addEventListener('input', function () {
-        clearTimeout(timer);
         const q = this.value.trim();
+        table.search(q).draw();
+
+        clearTimeout(timer);
         if (q.length < 2) { box.style.display = 'none'; return; }
+
         timer = setTimeout(() => {
             fetch('{{ route("titres-recettes.search") }}?q=' + encodeURIComponent(q))
                 .then(r => r.json())
@@ -136,12 +128,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         el.addEventListener('click', () => window.location.href = '/titres-recettes/' + el.dataset.id);
                     });
                 });
-        }, 280);
+        }, 250);
     });
+
     document.addEventListener('click', e => {
         if (!input.contains(e.target) && !box.contains(e.target)) box.style.display = 'none';
     });
 });
 </script>
 @endpush
+
 @endsection

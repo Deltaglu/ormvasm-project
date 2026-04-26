@@ -8,24 +8,9 @@ use Illuminate\View\View;
 
 class PrestationController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $query = Prestation::query();
-        
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $terms = explode(' ', trim($search));
-            foreach ($terms as $term) {
-                if (!empty($term)) {
-                    $query->where(function($q) use ($term) {
-                        $q->where('code', 'like', '%' . $term . '%')
-                          ->orWhere('libelle', 'like', '%' . $term . '%');
-                    });
-                }
-            }
-        }
-        
-        $prestations = $query->orderBy('code')->paginate(15)->appends($request->all());
+        $prestations = Prestation::query()->orderBy('code')->get();
         return view('prestations.index', compact('prestations'));
     }
 

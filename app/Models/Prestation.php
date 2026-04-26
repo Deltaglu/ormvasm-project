@@ -1,11 +1,16 @@
 <?php
 namespace App\Models;
 
+use App\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Prestation extends Model
 {
+    use HasFactory, SoftDeletes, LogsActivity;
+
     protected $connection = 'tenant';
 
     protected $fillable = [

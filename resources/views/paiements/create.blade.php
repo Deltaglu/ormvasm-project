@@ -27,7 +27,7 @@
 
         <div class="col-md-6">
             <label class="form-label" for="titre_recette_id">Titre de recette <span class="text-danger">*</span></label>
-            <select name="titre_recette_id" id="titre_recette_id" class="form-select @error('titre_recette_id') is-invalid @enderror" required>
+            <select name="titre_recette_id" id="titre_recette_id" class="form-select searchable-select @error('titre_recette_id') is-invalid @enderror" required>
                 <option value="">— Sélectionner —</option>
                 @foreach($titresRecettes as $titre)
                     <option value="{{ $titre->id }}" @selected(old('titre_recette_id') == $titre->id)>
@@ -35,7 +35,7 @@
                     </option>
                 @endforeach
             </select>
-            @error('titre_recette_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            @error('titre_recette_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
 
         <div class="col-md-4">
@@ -48,8 +48,8 @@
 
         <div class="col-md-4">
             <label class="form-label" for="date_paiement">Date du paiement <span class="text-danger">*</span></label>
-            <input type="date" name="date_paiement" id="date_paiement"
-                   class="form-control @error('date_paiement') is-invalid @enderror"
+            <input type="text" name="date_paiement" id="date_paiement"
+                   class="form-control datepicker @error('date_paiement') is-invalid @enderror"
                    value="{{ old('date_paiement', date('Y-m-d')) }}" required>
             @error('date_paiement')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>

@@ -12,34 +12,32 @@
     </a>
 </x-page-header>
 
-<div class="ormsa-surface ormsa-table-wrap">
-    <div class="ormsa-surface-header">
+<div class="ormsa-surface ormsa-table-wrap p-4">
+    <div class="ormsa-surface-header mb-3 border-bottom-0">
         <i class="bi bi-list-ul"></i> Liste des prestations
     </div>
 
-    {{-- Toolbar --}}
-    <div class="ormsa-table-toolbar">
-        <form method="get" action="{{ route('prestations.index') }}" class="d-flex gap-2 flex-wrap align-items-center">
-            <div style="position:relative; min-width:260px; flex:1;">
-                <i class="bi bi-search" style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:.9rem;pointer-events:none;"></i>
-                <input type="text" name="search" id="searchInput"
-                       class="form-control" style="padding-left:2.2rem;"
-                       placeholder="Code ou libellé…"
-                       value="{{ request('search') }}" autocomplete="off">
-                <div id="suggestions" class="search-suggestions"></div>
+    {{-- Restore Custom Search Bar --}}
+    <div class="ormsa-table-toolbar mb-4">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <div style="position:relative; min-width:320px; flex:1; max-width: 500px;">
+                <i class="bi bi-search" style="position:absolute;left:.8rem;top:50%;transform:translateY(-50%);color:var(--gray-500);font-size:1rem;pointer-events:none;z-index:10;"></i>
+                <input type="text" id="prestationSearchInput"
+                       class="form-control form-control-lg shadow-sm"
+                       style="padding-left:2.8rem; font-size: 1rem; border-color: var(--gray-300);"
+                       placeholder="Rechercher par Code ou Libellé..."
+                       autocomplete="off">
+                <div id="suggestions" class="search-suggestions shadow-lg border-0" style="font-size: 0.95rem; margin-top: 5px; border-radius: 8px;"></div>
             </div>
-            <button type="submit" class="btn btn-primary btn-sm">Rechercher</button>
-            @if(request('search'))
-                <a href="{{ route('prestations.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-x"></i> Effacer
-                </a>
-            @endif
-        </form>
+            <button type="button" class="btn btn-primary px-4 shadow-sm" style="height: 48px; font-weight: 600;">
+                <i class="bi bi-search me-2"></i> Rechercher
+            </button>
+        </div>
     </div>
 
     {{-- Table --}}
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 datatable" id="prestationTable">
             <thead>
                 <tr>
                     <th>Code</th>
@@ -50,11 +48,11 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($prestations as $prestation)
+                @foreach($prestations as $prestation)
                     <tr>
                         <td><code class="small">{{ $prestation->code }}</code></td>
                         <td class="fw-medium">{{ $prestation->libelle }}</td>
-                        <td class="text-end fw-semibold">{{ number_format($prestation->tarif, 2, ',', ' ') }} DH</td>
+                        <td class="text-end fw-semibold" data-order="{{ $prestation->tarif }}">{{ number_format($prestation->tarif, 2, ',', ' ') }} DH</td>
                         <td><span class="badge text-bg-light border text-muted">{{ $prestation->unite ?: '—' }}</span></td>
                         <td class="text-end">
                             <div class="ormsa-actions">
@@ -67,34 +65,34 @@
                             </div>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="5">
-                            <div class="ormsa-empty">
-                                <i class="bi bi-list-ul"></i>
-                                Aucune prestation trouvée.
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
-    
-    <div class="ormsa-pagination">{{ $prestations->links() }}</div>
 </div>
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const input = document.getElementById('searchInput');
+    const table = $('#prestationTable').DataTable({
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
+        paging: false,
+        info: false,
+        dom: 'rt',
+        order: [[1, 'asc']]
+    });
+
+    const input = document.getElementById('prestationSearchInput');
     const box   = document.getElementById('suggestions');
-    if (!input || !box) return;
     let timer;
+
     input.addEventListener('input', function () {
-        clearTimeout(timer);
         const q = this.value.trim();
+        table.search(q).draw();
+
+        clearTimeout(timer);
         if (q.length < 2) { box.style.display = 'none'; return; }
+
         timer = setTimeout(() => {
             fetch('{{ route("prestations.search") }}?q=' + encodeURIComponent(q))
                 .then(r => r.json())
@@ -110,12 +108,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         el.addEventListener('click', () => window.location.href = '/prestations/' + el.dataset.id);
                     });
                 });
-        }, 280);
+        }, 250);
     });
+
     document.addEventListener('click', e => {
         if (!input.contains(e.target) && !box.contains(e.target)) box.style.display = 'none';
     });
 });
 </script>
 @endpush
+
 @endsection

@@ -24,18 +24,18 @@
         
         <div class="col-md-6">
             <label class="form-label" for="date_emission">Date d'émission <span class="text-danger">*</span></label>
-            <input type="date" name="date_emission" id="date_emission" class="form-control" value="{{ old('date_emission', date('Y-m-d')) }}" required>
+            <input type="text" name="date_emission" id="date_emission" class="form-control datepicker" value="{{ old('date_emission', date('Y-m-d')) }}" required>
         </div>
         
         <div class="col-md-6">
             <label class="form-label" for="date_echeance">Date d'échéance</label>
-            <input type="date" name="date_echeance" id="date_echeance" class="form-control" value="{{ old('date_echeance') }}">
+            <input type="text" name="date_echeance" id="date_echeance" class="form-control datepicker" value="{{ old('date_echeance') }}">
             <div class="form-text">Optionnel. Pénalité appliquée après cette date.</div>
         </div>
         
         <div class="col-md-6">
             <label class="form-label" for="agriculteur_id">Agriculteur <span class="text-danger">*</span></label>
-            <select name="agriculteur_id" id="agriculteur_id" class="form-select" required>
+            <select name="agriculteur_id" id="agriculteur_id" class="form-select searchable-select" required>
                 <option value="">— Sélectionner —</option>
                 @foreach($agriculteurs as $agriculteur)
                     <option value="{{ $agriculteur->id }}" @selected(old('agriculteur_id') == $agriculteur->id)>
@@ -111,7 +111,7 @@ function addPrestationLine(prestationId = '', quantity = 1) {
 
     div.innerHTML = `
         <div class="col-md-5">
-            <select name="prestations[${index}][prestation_id]" class="form-select prestation-select" required onchange="updatePrestationLine(${index})">
+            <select name="prestations[${index}][prestation_id]" class="form-select dynamic-prestation-select" required onchange="updatePrestationLine(${index})">
                 ${options}
             </select>
         </div>
@@ -130,6 +130,17 @@ function addPrestationLine(prestationId = '', quantity = 1) {
     `;
 
     container.appendChild(div);
+
+    // Initialize Choices for the new select
+    const newSelect = div.querySelector('.dynamic-prestation-select');
+    new Choices(newSelect, {
+        searchEnabled: true,
+        itemSelectText: '',
+        noResultsText: 'Aucun résultat trouvé',
+        placeholderValue: 'Prestation...',
+    });
+
+    newSelect.addEventListener('change', () => updatePrestationLine(index));
     
     const select = div.querySelector('.prestation-select');
     const unitPriceInput = div.querySelector('.prestation-unit-price');
@@ -153,14 +164,14 @@ function updatePrestationLine(index) {
     const line = document.querySelector(`.prestation-line[data-index="${index}"]`);
     if (!line) return;
 
-    const select = line.querySelector('.prestation-select');
+    const select = line.querySelector('.dynamic-prestation-select');
     const quantityInput = line.querySelector('.prestation-quantity');
     const unitPriceInput = line.querySelector('.prestation-unit-price');
     const totalInput = line.querySelector('.prestation-line-total');
     
     if (select.value) {
-        const option = select.options[select.selectedIndex];
-        unitPriceInput.value = option.dataset.tarif;
+        const option = select.querySelector(`option[value="${select.value}"]`);
+        if (option) unitPriceInput.value = option.dataset.tarif;
     }
     
     const quantity = parseFloat(quantityInput.value) || 0;

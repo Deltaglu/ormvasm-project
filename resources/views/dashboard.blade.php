@@ -10,8 +10,8 @@
     <div class="col">
         <div class="ormsa-stat">
             <div class="ormsa-stat-icon"><i class="bi bi-people-fill"></i></div>
-            <div class="ormsa-stat-label">Utilisateurs</div>
-            <div class="ormsa-stat-value">{{ $stats['total_users'] }}</div>
+            <div class="ormsa-stat-label">Agriculteurs</div>
+            <div class="ormsa-stat-value">{{ $stats['total_agriculteurs'] }}</div>
         </div>
     </div>
     <div class="col">
@@ -40,6 +40,44 @@
             <div class="ormsa-stat-icon"><i class="bi bi-percent"></i></div>
             <div class="ormsa-stat-label">Pénalités (cumul)</div>
             <div class="ormsa-stat-value" style="font-size:1.3rem;">{{ number_format($stats['total_penalites'], 2, ',', ' ') }} <span style="font-size:.8rem;font-weight:600;color:var(--gray-400);">DH</span></div>
+        </div>
+    </div>
+</div>
+
+{{-- Charts Row --}}
+<div class="row g-4 mb-4">
+    <div class="col-xl-8">
+        <div class="ormsa-surface h-100">
+            <div class="ormsa-surface-header">
+                <i class="bi bi-graph-up-arrow"></i> Recouvrement (12 derniers mois)
+            </div>
+            <div class="p-3">
+                <div id="revenueChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="row g-4 h-100">
+            <div class="col-12 h-50">
+                <div class="ormsa-surface h-100">
+                    <div class="ormsa-surface-header">
+                        <i class="bi bi-pie-chart-fill"></i> Prestations (Top 5)
+                    </div>
+                    <div class="p-3 d-flex align-items-center justify-content-center h-100" style="min-height: 220px;">
+                        <div id="prestationsChart" class="w-100"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 h-50">
+                <div class="ormsa-surface h-100">
+                    <div class="ormsa-surface-header">
+                        <i class="bi bi-bar-chart-fill"></i> Encaissé vs Pénalités
+                    </div>
+                    <div class="p-3 d-flex align-items-center justify-content-center h-100" style="min-height: 220px;">
+                        <div id="encaissesChart" class="w-100"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -108,3 +146,138 @@
     </div>
 </div>
 @endsection
+
+@stack('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Revenue Chart (Line)
+    const revenueData = @json($revenueChartData);
+    const revenueOptions = {
+        series: [{
+            name: 'Paiements',
+            data: revenueData.series
+        }],
+        chart: {
+            height: 350,
+            type: 'area',
+            fontFamily: 'Inter, sans-serif',
+            toolbar: { show: false }
+        },
+        colors: ['#0ea5e9'],
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.4,
+                opacityTo: 0.0,
+                stops: [0, 90, 100]
+            }
+        },
+        xaxis: {
+            categories: revenueData.labels,
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                formatter: function (value) {
+                    return value.toLocaleString('fr-FR') + " DH";
+                }
+            }
+        },
+        grid: {
+            borderColor: '#f1f1f1',
+            strokeDashArray: 4,
+        }
+    };
+    new ApexCharts(document.querySelector("#revenueChart"), revenueOptions).render();
+
+    // 2. Prestations Chart (Pie)
+    const prestationsData = @json($prestationsChartData);
+    const prestationsOptions = {
+        series: prestationsData.series,
+        labels: prestationsData.labels,
+        chart: {
+            type: 'donut',
+            height: 250,
+            fontFamily: 'Inter, sans-serif',
+        },
+        colors: ['#0ea5e9', '#f97316', '#10b981', '#6366f1', '#f43f5e'],
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '65%'
+                }
+            }
+        },
+        dataLabels: { enabled: false },
+        legend: {
+            position: 'bottom',
+            fontSize: '13px'
+        },
+        tooltip: {
+            y: {
+                formatter: function (val) {
+                    return val.toLocaleString('fr-FR') + " DH";
+                }
+            }
+        }
+    };
+    if (prestationsData.series.length > 0) {
+        new ApexCharts(document.querySelector("#prestationsChart"), prestationsOptions).render();
+    } else {
+        document.querySelector("#prestationsChart").innerHTML = '<div class="text-muted text-center small">Pas de données</div>';
+    }
+
+    // 3. Encaissés vs Pénalités Chart (Bar)
+    const encaissesData = @json($encaissesVsPenalitesData);
+    const encaissesOptions = {
+        series: [{
+            name: 'Montant',
+            data: encaissesData.series
+        }],
+        chart: {
+            type: 'bar',
+            height: 250,
+            fontFamily: 'Inter, sans-serif',
+            toolbar: { show: false }
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                horizontal: true,
+                distributed: true,
+            }
+        },
+        colors: ['#10b981', '#ef4444'], // Green for revenue, Red for penalties
+        dataLabels: {
+            enabled: true,
+            formatter: function (val) {
+                return val.toLocaleString('fr-FR') + " DH";
+            },
+            style: {
+                fontSize: '12px',
+            }
+        },
+        xaxis: {
+            categories: encaissesData.labels,
+            labels: {
+                show: false
+            }
+        },
+        legend: { show: false },
+        grid: {
+            xaxis: {
+                lines: { show: true }
+            },
+            yaxis: {
+                lines: { show: false }
+            }
+        }
+    };
+    new ApexCharts(document.querySelector("#encaissesChart"), encaissesOptions).render();
+});
+</script>

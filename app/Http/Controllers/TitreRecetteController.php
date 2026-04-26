@@ -10,29 +10,11 @@ use Illuminate\View\View;
 
 class TitreRecetteController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $query = TitreRecette::query()->with('agriculteur');
-        
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $terms = explode(' ', trim($search));
-            foreach ($terms as $term) {
-                if (!empty($term)) {
-                    $query->where(function($q) use ($term) {
-                        $q->where('numero', 'like', '%' . $term . '%')
-                          ->orWhereHas('agriculteur', function($q) use ($term) {
-                              $q->where('nom', 'like', '%' . $term . '%')
-                                ->orWhere('prenom', 'like', '%' . $term . '%');
-                          });
-                    });
-                }
-            }
-        }
-        
-        $titresRecettes = $query->latest('date_emission')->paginate(15)->appends($request->all());
+        $titresRecettes = TitreRecette::query()->with('agriculteur')->latest('date_emission')->get();
 
-        $titresRecettes->getCollection()->each(function ($titre) {
+        $titresRecettes->each(function ($titre) {
             $titre->calculatePenalty();
         });
 

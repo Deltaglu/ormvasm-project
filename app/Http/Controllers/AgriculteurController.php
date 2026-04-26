@@ -9,26 +9,9 @@ use Illuminate\View\View;
 
 class AgriculteurController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $query = Agriculteur::query();
-        $search = $request->input('search');
-        
-        if ($search) {
-            $terms = explode(' ', trim($search));
-            foreach ($terms as $term) {
-                if (!empty($term)) {
-                    $query->where(function($q) use ($term) {
-                        $q->where('nom', 'like', '%' . $term . '%')
-                          ->orWhere('prenom', 'like', '%' . $term . '%')
-                          ->orWhere('cin', 'like', '%' . $term . '%')
-                          ->orWhere('email', 'like', '%' . $term . '%');
-                    });
-                }
-            }
-        }
-        
-        $agriculteurs = $query->orderBy('nom')->orderBy('prenom')->paginate(15)->appends($request->all());
+        $agriculteurs = Agriculteur::query()->orderBy('nom')->orderBy('prenom')->get();
         
         return view('agriculteurs.index', compact('agriculteurs'));
     }

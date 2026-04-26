@@ -12,9 +12,142 @@
     {{-- App CSS (with cache-bust) --}}
     <link href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}" rel="stylesheet">
 
+    {{-- Dark Mode Prevention Script --}}
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('ormsa-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    {{-- Third Party CSS --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
     @stack('styles')
+    <style>
+        /* ================================================================
+           ORANGE FRUIT LOADER (Agriculture)
+           ================================================================ */
+        .ormsa-loader-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: transparent !important;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            pointer-events: none;
+        }
+        .ormsa-loader-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .orange-wrapper {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .leaf-loader {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
+            border-radius: 2px 50px; /* Leaf shape */
+            position: relative;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+            animation: leaf-float 2s infinite ease-in-out;
+        }
+
+        .leaf-loader::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom right, transparent 48%, rgba(255,255,255,0.3) 50%, transparent 52%);
+        }
+
+        /* ================================================================
+           DATATABLES PREMIUM STYLING
+           ================================================================ */
+        .dataTables_wrapper .dataTables_filter {
+            float: none;
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            width: 320px !important;
+            font-size: 0.9rem;
+            color: var(--gray-800);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: 0.8rem center;
+            outline: none;
+        }
+
+        [data-theme="dark"] .dataTables_wrapper .dataTables_filter input {
+            background-color: var(--gray-100);
+            border-color: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .dataTables_wrapper .dataTables_filter label {
+            font-size: 0; /* Hide the "Search:" text */
+        }
+
+        table.dataTable thead .sorting,
+        table.dataTable thead .sorting_asc,
+        table.dataTable thead .sorting_desc {
+            cursor: pointer;
+            position: relative;
+            padding-right: 30px !important;
+        }
+
+        table.dataTable thead .sorting:after,
+        table.dataTable thead .sorting_asc:after,
+        table.dataTable thead .sorting_desc:after {
+            position: absolute;
+            right: 10px;
+            font-family: "bootstrap-icons";
+            opacity: 0.3;
+            font-style: normal;
+        }
+
+        table.dataTable thead .sorting:after { content: "\F145"; } /* bi-arrow-down-up */
+        table.dataTable thead .sorting_asc:after { content: "\F124"; opacity: 1; color: var(--c-primary); } /* bi-arrow-up */
+        table.dataTable thead .sorting_desc:after { content: "\F128"; opacity: 1; color: var(--c-primary); } /* bi-arrow-down */
+
+        .dataTables_info, .dataTables_paginate {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+        }
+
+        @keyframes leaf-float {
+            0% { transform: translateY(0) rotate(-10deg) scale(1); }
+            50% { transform: translateY(-15px) rotate(15deg) scale(1.1); }
+            100% { transform: translateY(0) rotate(-10deg) scale(1); }
+        }
+    </style>
 </head>
 <body class="@auth ormsa-app @else ormsa-auth @endauth">
+
+{{-- Leaf Loader (Agriculture) --}}
+<div id="pageLoader" class="ormsa-loader-overlay">
+    <div class="loader-inner">
+        <div class="leaf-loader"></div>
+    </div>
+</div>
 
 @auth
 {{-- ─── Authenticated shell ─── --}}
@@ -50,8 +183,11 @@
             <a class="ormsa-nav-link {{ request()->routeIs('agriculteurs.*') ? 'active' : '' }}" href="{{ route('agriculteurs.index') }}">
                 <i class="bi bi-people"></i> Agriculteurs
             </a>
-            <a class="ormsa-nav-link {{ request()->routeIs('prestations.*') ? 'active' : '' }}" href="{{ route('prestations.index') }}">
+            <a href="{{ route('prestations.index') }}" class="ormsa-nav-link {{ request()->routeIs('prestations.*') ? 'active' : '' }}">
                 <i class="bi bi-list-ul"></i> Prestations
+            </a>
+            <a href="{{ route('activity-logs.index') }}" class="ormsa-nav-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}">
+                <i class="bi bi-journal-text"></i> Journal d'Activité
             </a>
             <a class="ormsa-nav-link {{ request()->routeIs('titres-recettes.*') ? 'active' : '' }}" href="{{ route('titres-recettes.index') }}">
                 <i class="bi bi-receipt"></i> Titres de recette
@@ -91,6 +227,10 @@
                 <div class="ormsa-topbar-app">{{ config('app.name') }}</div>
             </div>
             <div class="d-flex align-items-center gap-2">
+                <button type="button" id="themeToggle" class="btn btn-sm btn-outline-secondary px-2" title="Changer de thème">
+                    <i class="bi bi-moon-stars d-none-dark"></i>
+                    <i class="bi bi-sun d-none-light"></i>
+                </button>
                 <div class="ormsa-user-pill">
                     <span class="ormsa-user-avatar" aria-hidden="true">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                     <span>{{ auth()->user()->name }}</span>
@@ -110,13 +250,19 @@
 
                 {{-- Flash success --}}
                 @if(session('status'))
-                    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <span>{{ session('status') }}</span>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: "{{ session('status') }}",
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
+                        });
+                    </script>
                 @endif
 
                 {{-- Validation errors --}}
@@ -166,8 +312,125 @@
 </main>
 @endauth
 
-{{-- Bootstrap JS --}}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{{-- Third Party JS --}}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Global Flatpickr init
+    flatpickr(".datepicker", {
+        locale: "fr",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        allowInput: true
+    });
+
+    // Global Choices.js init
+    const selects = document.querySelectorAll('.searchable-select');
+    selects.forEach(select => {
+        new Choices(select, {
+            searchEnabled: true,
+            itemSelectText: '',
+            noResultsText: 'Aucun résultat trouvé',
+            noChoicesText: 'Pas de choix disponibles',
+            placeholderValue: 'Sélectionnez une option',
+        });
+    });
+
+    // Global Delete Confirmation
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.btn-delete-confirm');
+        if (deleteBtn) {
+            e.preventDefault();
+            const form = deleteBtn.closest('form');
+            Swal.fire({
+                title: 'Êtes-vous sûr ?',
+                text: "Cette action est irréversible.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Oui, supprimer !',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    });
+
+    // Theme Toggle Logic
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('ormsa-theme', newTheme);
+            
+            if (window.ApexCharts) {
+                window.dispatchEvent(new Event('resize')); 
+            }
+        });
+    }
+
+    // Global Loader Control
+    const loader = document.getElementById('pageLoader');
+    
+    // Hide on load
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            if (loader) loader.classList.add('hidden');
+        }, 300);
+    });
+
+    // Show on navigation
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && 
+            link.href && 
+            link.href.startsWith(window.location.origin) && 
+            !link.href.includes('#') && 
+            !link.target && 
+            !link.hasAttribute('download')) {
+            if (loader) loader.classList.remove('hidden');
+        }
+    });
+
+    // Show on form submit
+    document.addEventListener('submit', function(e) {
+        if (!e.defaultPrevented) {
+            if (loader) loader.classList.remove('hidden');
+        }
+    });
+
+    // Global DataTables Initialization helper (can be called manually when needed)
+    window.initDataTable = (selector) => {
+        if (typeof jQuery !== 'undefined' && $(selector).length > 0 && !$.fn.DataTable.isDataTable(selector)) {
+            $(selector).DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json'
+                },
+                pageLength: 10,
+                order: [[0, 'desc']],
+                dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+            });
+        }
+    };
+});
+</script>
+
 @stack('scripts')
 
 {{-- PDF Preview Modal --}}
