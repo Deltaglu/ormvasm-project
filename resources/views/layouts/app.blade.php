@@ -484,5 +484,217 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.addEventListener('hidden.bs.modal', function () { iframe.src = ''; });
 });
 </script>
+    {{-- Command Center (Global Search Overlay) --}}
+    <div id="commandCenter" class="command-center-overlay" style="display:none;">
+        <div class="command-center-modal shadow-lg">
+            <div class="command-center-header">
+                <i class="bi bi-search"></i>
+                <input type="text" id="commandCenterInput" placeholder="Rechercher n'importe quoi (Agriculteur, Paiement, TR...)" autocomplete="off">
+                <div class="command-center-shortcut">ESC pour fermer</div>
+            </div>
+            <div id="commandCenterResults" class="command-center-results">
+                <div class="p-4 text-center text-muted small">Commencez à taper pour rechercher...</div>
+            </div>
+            <div class="command-center-footer">
+                <span><kbd>↑↓</kbd> Naviguer</span>
+                <span><kbd>Enter</kbd> Sélectionner</span>
+                <span class="ms-auto"><kbd>Ctrl+K</kbd> pour ouvrir</span>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .command-center-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 10vh;
+        }
+        .command-center-modal {
+            width: 100%;
+            max-width: 650px;
+            background: var(--bg-surface);
+            border: 1px solid var(--gray-200);
+            border-radius: 1rem;
+            overflow: hidden;
+            animation: command-center-in 0.2s ease-out;
+        }
+        @keyframes command-center-in {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .command-center-header {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-100);
+            gap: 1rem;
+        }
+        .command-center-header i { font-size: 1.25rem; color: var(--c-primary); }
+        .command-center-header input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 1.1rem;
+            color: var(--gray-800);
+            outline: none;
+        }
+        .command-center-shortcut {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--gray-400);
+            letter-spacing: 0.5px;
+            background: var(--gray-50);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .command-center-results {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .search-result-item:hover, .search-result-item.active {
+            background: var(--gray-50);
+            transform: translateX(5px);
+        }
+        .search-result-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gray-100);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--gray-600);
+        }
+        .search-result-info { flex: 1; }
+        .search-result-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0; color: var(--gray-800); }
+        .search-result-subtitle { font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0; }
+        .search-result-badge { font-size: 0.7rem; background: var(--gray-100); color: var(--gray-600); padding: 2px 8px; border-radius: 20px; }
+        
+        .command-center-footer {
+            padding: 0.75rem 1.5rem;
+            background: var(--gray-50);
+            border-top: 1px solid var(--gray-100);
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+        .command-center-footer kbd {
+            background: #fff;
+            border: 1px solid var(--gray-300);
+            border-bottom-width: 2px;
+            color: var(--gray-700);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const commandCenter = document.getElementById('commandCenter');
+            const input = document.getElementById('commandCenterInput');
+            const results = document.getElementById('commandCenterResults');
+            let debounceTimer;
+
+            // Shortcut listener (Ctrl + K or Cmd + K)
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    commandCenter.style.display = 'flex';
+                    input.value = '';
+                    results.innerHTML = '<div class="p-4 text-center text-muted small">Commencez à taper pour rechercher...</div>';
+                    input.focus();
+                }
+                if (e.key === 'Escape') {
+                    commandCenter.style.display = 'none';
+                }
+            });
+
+            // Close on click outside
+            commandCenter.addEventListener('click', function(e) {
+                if (e.target === commandCenter) commandCenter.style.display = 'none';
+            });
+
+            // Ajax Search
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const q = this.value;
+                if (q.length < 2) {
+                    results.innerHTML = '<div class="p-4 text-center text-muted small">Commencez à taper pour rechercher...</div>';
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    fetch(`{{ route('global-search') }}?q=${encodeURIComponent(q)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                results.innerHTML = '<div class="p-4 text-center text-muted small">Aucun résultat trouvé.</div>';
+                                return;
+                            }
+                            results.innerHTML = data.map((item, idx) => `
+                                <a href="${item.url}" class="search-result-item ${idx === 0 ? 'active' : ''}">
+                                    <div class="search-result-icon">
+                                        <i class="bi ${item.icon}"></i>
+                                    </div>
+                                    <div class="search-result-info">
+                                        <div class="search-result-title">${item.title}</div>
+                                        <div class="search-result-subtitle">${item.subtitle}</div>
+                                    </div>
+                                    <div class="search-result-badge">${item.type}</div>
+                                </a>
+                            `).join('');
+                        });
+                }, 300);
+            });
+
+            // Keyboard navigation
+            input.addEventListener('keydown', function(e) {
+                const items = results.querySelectorAll('.search-result-item');
+                let activeIdx = Array.from(items).findIndex(i => i.classList.contains('active'));
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (activeIdx < items.length - 1) {
+                        if (activeIdx !== -1) items[activeIdx].classList.remove('active');
+                        items[activeIdx + 1].classList.add('active');
+                        items[activeIdx + 1].scrollIntoView({ block: 'nearest' });
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (activeIdx > 0) {
+                        items[activeIdx].classList.remove('active');
+                        items[activeIdx - 1].classList.add('active');
+                        items[activeIdx - 1].scrollIntoView({ block: 'nearest' });
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (activeIdx !== -1) {
+                        window.location.href = items[activeIdx].getAttribute('href');
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>

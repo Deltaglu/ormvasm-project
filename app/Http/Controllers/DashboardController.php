@@ -75,6 +75,13 @@ class DashboardController extends Controller
             'series' => [$stats['total_montant'], $stats['total_penalites']]
         ];
 
-        return view('dashboard', compact('stats', 'recentActivity', 'revenueChartData', 'prestationsChartData', 'encaissesVsPenalitesData'));
+        // 4. Recovery Rate
+        $baseIssued = TitreRecette::sum('montant_total');
+        $penalties = TitreRecette::sum('montant_penalite');
+        $totalIssued = ($baseIssued + $penalties) ?: 1;
+        $totalCollected = $stats['total_montant'];
+        $recoveryRate = round(($totalCollected / $totalIssued) * 100, 1);
+
+        return view('dashboard', compact('stats', 'recentActivity', 'revenueChartData', 'prestationsChartData', 'encaissesVsPenalitesData', 'recoveryRate'));
     }
 }

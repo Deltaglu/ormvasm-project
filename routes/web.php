@@ -41,6 +41,7 @@ Route::middleware(['auth', 'tenant.session'])->group(function () {
     Route::get('/activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs.index');
     
     Route::get('/trash', [App\Http\Controllers\TrashController::class, 'index'])->name('trash.index');
+    Route::get('/global-search', [App\Http\Controllers\GlobalSearchController::class, 'search'])->name('global-search');
     Route::post('/trash/restore/{type}/{id}', [App\Http\Controllers\TrashController::class, 'restore'])->name('trash.restore');
     Route::delete('/trash/force-delete/{type}/{id}', [App\Http\Controllers\TrashController::class, 'forceDelete'])->name('trash.force-delete');
 

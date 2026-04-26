@@ -46,7 +46,7 @@
 
 {{-- Charts Row --}}
 <div class="row g-4 mb-4">
-    <div class="col-xl-8">
+    <div class="col-xl-6">
         <div class="ormsa-surface h-100">
             <div class="ormsa-surface-header">
                 <i class="bi bi-graph-up-arrow"></i> Recouvrement (12 derniers mois)
@@ -56,93 +56,92 @@
             </div>
         </div>
     </div>
-    <div class="col-xl-4">
-        <div class="row g-4 h-100">
-            <div class="col-12 h-50">
-                <div class="ormsa-surface h-100">
-                    <div class="ormsa-surface-header">
-                        <i class="bi bi-pie-chart-fill"></i> Prestations (Top 5)
-                    </div>
-                    <div class="p-3 d-flex align-items-center justify-content-center h-100" style="min-height: 220px;">
-                        <div id="prestationsChart" class="w-100"></div>
-                    </div>
-                </div>
+    <div class="col-xl-3">
+        <div class="ormsa-surface h-100">
+            <div class="ormsa-surface-header">
+                <i class="bi bi-speedometer2"></i> Taux de Recouvrement
             </div>
-            <div class="col-12 h-50">
-                <div class="ormsa-surface h-100">
-                    <div class="ormsa-surface-header">
-                        <i class="bi bi-bar-chart-fill"></i> Encaissé vs Pénalités
-                    </div>
-                    <div class="p-3 d-flex align-items-center justify-content-center h-100" style="min-height: 220px;">
-                        <div id="encaissesChart" class="w-100"></div>
-                    </div>
-                </div>
+            <div class="p-3 d-flex flex-column align-items-center justify-content-center h-100" style="min-height: 250px;">
+                <div id="recoveryGauge" class="w-100"></div>
+                <div class="text-center mt-2 small text-muted">Total collecté vs Émis</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3">
+        <div class="ormsa-surface h-100">
+            <div class="ormsa-surface-header">
+                <i class="bi bi-pie-chart-fill"></i> Prestations (Top 5)
+            </div>
+            <div class="p-3 d-flex align-items-center justify-content-center h-100" style="min-height: 250px;">
+                <div id="prestationsChart" class="w-100"></div>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Recent Activity Table --}}
-<div class="ormsa-surface ormsa-table-wrap">
-    <div class="ormsa-surface-header">
-        <i class="bi bi-clock-history"></i>
-        Activité récente
+{{-- Secondary Stats & Recent Activity --}}
+<div class="row g-4 mb-4">
+    <div class="col-xl-4">
+        <div class="ormsa-surface h-100">
+            <div class="ormsa-surface-header">
+                <i class="bi bi-bar-chart-fill"></i> Encaissé vs Pénalités
+            </div>
+            <div class="p-3 d-flex align-items-center justify-content-center h-100" style="min-height: 250px;">
+                <div id="encaissesChart" class="w-100"></div>
+            </div>
+        </div>
     </div>
-    <div class="table-responsive">
-        <table class="table table-hover mb-0 align-middle">
-            <thead>
-                <tr>
-                    <th>Référence</th>
-                    <th>Date</th>
-                    <th>Agriculteur</th>
-                    <th>Titre</th>
-                    <th class="text-end">Montant titre</th>
-                    <th class="text-end">Pénalité</th>
-                    <th class="text-end">Total</th>
-                    <th class="text-end">Paiement</th>
-                    <th class="text-end">Quittance</th>
-                </tr>
-            </thead>
-            <tbody>
-            @forelse($recentActivity as $p)
-                @php $t = $p->titreRecette; @endphp
-                <tr>
-                    <td class="fw-medium">{{ $p->reference }}</td>
-                    <td>{{ $p->date_paiement->format('d/m/Y') }}</td>
-                    <td>{{ $t?->agriculteur?->prenom }} {{ $t?->agriculteur?->nom }}</td>
-                    <td><code class="small">{{ $t?->numero }}</code></td>
-                    <td class="text-end">{{ $t ? number_format($t->montant_total, 2, ',', ' ').' DH' : '—' }}</td>
-                    <td class="text-end">
-                        @if($t && (float) $t->montant_penalite > 0)
-                            <span class="status-pill status-pill-danger">{{ number_format($t->montant_penalite, 2, ',', ' ') }} DH</span>
-                        @else
-                            <span class="text-muted">—</span>
-                        @endif
-                    </td>
-                    <td class="text-end fw-semibold">{{ $t ? number_format($t->montant_total_avec_penalite, 2, ',', ' ').' DH' : '—' }}</td>
-                    <td class="text-end"><span class="status-pill status-pill-success">{{ number_format($p->montant, 2, ',', ' ') }} DH</span></td>
-                    <td class="text-end">
-                        @if($p->quittance)
-                            <a href="{{ route('quittances.show', $p->quittance) }}" class="btn btn-sm btn-outline-primary" title="Voir quittance">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        @else
-                            <span class="text-muted">—</span>
-                        @endif
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="9">
-                        <div class="ormsa-empty">
-                            <i class="bi bi-inbox"></i>
-                            Aucune activité récente.
-                        </div>
-                    </td>
-                </tr>
-            @endforelse
-            </tbody>
-        </table>
+    <div class="col-xl-8">
+        <div class="ormsa-surface ormsa-table-wrap h-100">
+            <div class="ormsa-surface-header">
+                <i class="bi bi-clock-history"></i>
+                Activité récente
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Date</th>
+                            <th>Agriculteur</th>
+                            <th>Titre</th>
+                            <th class="text-end">Paiement</th>
+                            <th class="text-end">Quittance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @forelse($recentActivity as $p)
+                        @php $t = $p->titreRecette; @endphp
+                        <tr>
+                            <td class="fw-medium">{{ $p->reference }}</td>
+                            <td>{{ $p->date_paiement->format('d/m/Y') }}</td>
+                            <td>{{ $t?->agriculteur?->prenom }} {{ $t?->agriculteur?->nom }}</td>
+                            <td><code class="small">{{ $t?->numero }}</code></td>
+                            <td class="text-end"><span class="status-pill status-pill-success">{{ number_format($p->montant, 2, ',', ' ') }} DH</span></td>
+                            <td class="text-end">
+                                @if($p->quittance)
+                                    <a href="{{ route('quittances.show', $p->quittance) }}" class="btn btn-sm btn-outline-primary" title="Voir quittance">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6">
+                                <div class="ormsa-empty">
+                                    <i class="bi bi-inbox"></i>
+                                    Aucune activité récente.
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
@@ -151,6 +150,7 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     // 1. Revenue Chart (Line)
     const revenueData = @json($revenueChartData);
     const revenueOptions = {
@@ -279,5 +279,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
     new ApexCharts(document.querySelector("#encaissesChart"), encaissesOptions).render();
+
+    // 4. Recovery Gauge (Circular)
+    const recoveryOptions = {
+        series: [{{ $recoveryRate }}],
+        chart: {
+            type: 'radialBar',
+            height: 250,
+            sparkline: { enabled: true }
+        },
+        plotOptions: {
+            radialBar: {
+                startAngle: -135,
+                endAngle: 135,
+                hollow: { size: '60%' },
+                track: {
+                    background: isDark ? '#1e293b' : '#f1f5f9',
+                    strokeWidth: '67%',
+                },
+                dataLabels: {
+                    name: { show: false },
+                    value: {
+                        offsetY: 10,
+                        fontSize: '24px',
+                        fontWeight: '700',
+                        color: isDark ? '#f8fafc' : '#1e293b',
+                        formatter: val => val + "%"
+                    }
+                }
+            }
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shade: 'dark',
+                type: 'horizontal',
+                gradientToColors: ['#10b981'],
+                stops: [0, 100]
+            }
+        },
+        stroke: { lineCap: 'round' },
+        labels: ['Recouvré'],
+    };
+    new ApexCharts(document.querySelector("#recoveryGauge"), recoveryOptions).render();
 });
 </script>
