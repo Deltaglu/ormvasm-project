@@ -13,9 +13,8 @@ class DashboardController extends Controller
 {
     public function __invoke(): View
     {
-        foreach (TitreRecette::query()->cursor() as $titre) {
-            $titre->calculatePenalty();
-        }
+        // Optimization: Removed the penalty calculation loop for all records.
+        // Penalties are now managed on-demand or via scheduled jobs.
 
         $stats = [
             'total_users' => User::query()->count(),
