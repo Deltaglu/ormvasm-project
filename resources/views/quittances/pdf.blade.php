@@ -77,10 +77,12 @@
 {{-- Two info boxes side by side --}}
 <div class="info-grid">
     <div class="info-box">
-        <h3>Informations agriculteur</h3>
+        <h3>Informations client</h3>
         <table>
-            <tr><td class="label">Nom complet</td><td>{{ $agri->prenom }} {{ $agri->nom }}</td></tr>
+            <tr><td class="label">Nom complet</td><td>{{ $agri->type === 'society' ? $agri->nom : ($agri->prenom . ' ' . $agri->nom) }}</td></tr>
+            @if($agri->cin)
             <tr><td class="label">CIN</td><td>{{ $agri->cin }}</td></tr>
+            @endif
             <tr><td class="label">Adresse</td><td>{{ $agri->adresse ?? '—' }}</td></tr>
             <tr><td class="label">Téléphone</td><td>{{ $agri->telephone ?? '—' }}</td></tr>
         </table>

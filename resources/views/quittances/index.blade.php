@@ -15,34 +15,28 @@
     </div>
 
     {{-- Toolbar --}}
-    <div class="ormsa-table-toolbar">
-        <form method="get" action="{{ route('quittances.index') }}" class="d-flex gap-2 flex-wrap align-items-center">
-            <div style="position:relative; min-width:280px; flex:1;">
-                <i class="bi bi-search" style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:.9rem;pointer-events:none;"></i>
-                <input type="text" name="search" id="searchInput"
-                       class="form-control" style="padding-left:2.2rem;"
-                       placeholder="Numéro, référence, agriculteur…"
-                       value="{{ request('search') }}" autocomplete="off">
-                <div id="suggestions" class="search-suggestions"></div>
+    <div class="ormsa-table-toolbar mb-4">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <div style="position:relative; min-width:320px; flex:1; max-width: 500px;">
+                <i class="bi bi-search" style="position:absolute;left:.8rem;top:50%;transform:translateY(-50%);color:var(--gray-500);font-size:1rem;pointer-events:none;z-index:10;"></i>
+                <input type="text" id="quittanceSearchInput"
+                       class="form-control form-control-lg shadow-sm"
+                       style="padding-left:2.8rem; font-size: 1rem; border-color: var(--gray-300);"
+                       placeholder="Rechercher par Numéro ou Client..."
+                       autocomplete="off">
             </div>
-            <button type="submit" class="btn btn-primary btn-sm">Rechercher</button>
-            @if(request('search'))
-                <a href="{{ route('quittances.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-x"></i> Effacer
-                </a>
-            @endif
-        </form>
+        </div>
     </div>
 
     {{-- Table --}}
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 datatable" id="quittancesTable">
             <thead>
                 <tr>
                     <th>Numéro</th>
                     <th>Réf. paiement</th>
                     <th>Date paiement</th>
-                    <th>Agriculteur</th>
+                    <th>Client</th>
                     <th>Titre</th>
                     <th class="text-end">Montant</th>
                     <th class="text-end">Actions</th>
@@ -52,12 +46,12 @@
                 @forelse($quittances as $q)
                     @php $p = $q->paiement; @endphp
                     <tr>
-                        <td><code class="small fw-semibold" style="color:var(--c-primary);">{{ $q->numero }}</code></td>
+                        <td data-order="{{ $q->numero }}"><code class="small fw-semibold" style="color:var(--c-primary);">{{ $q->numero }}</code></td>
                         <td class="fw-medium text-muted" style="font-size:.85rem;">{{ $p->reference }}</td>
-                        <td>{{ $p->date_paiement->format('d/m/Y') }}</td>
-                        <td class="fw-medium">{{ $p->titreRecette->agriculteur->prenom }} {{ $p->titreRecette->agriculteur->nom }}</td>
+                        <td data-order="{{ $p->date_paiement->format('Y-m-d') }}">{{ $p->date_paiement->format('d/m/Y') }}</td>
+                        <td class="fw-medium">{{ $p->titreRecette->agriculteur->type === 'society' ? $p->titreRecette->agriculteur->nom : ($p->titreRecette->agriculteur->prenom . ' ' . $p->titreRecette->agriculteur->nom) }}</td>
                         <td><code class="small text-muted">{{ $p->titreRecette->numero }}</code></td>
-                        <td class="text-end fw-semibold">{{ number_format($p->montant, 2, ',', ' ') }} DH</td>
+                        <td class="text-end fw-semibold" data-order="{{ $p->montant }}">{{ number_format($p->montant, 2, ',', ' ') }} DH</td>
                         <td class="text-end">
                             <div class="ormsa-actions">
                                 <a href="{{ route('quittances.show', $q) }}" class="btn btn-outline-secondary" title="Voir">
@@ -89,34 +83,25 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const input = document.getElementById('searchInput');
-    const box   = document.getElementById('suggestions');
-    if (!input || !box) return;
-    let timer;
-    input.addEventListener('input', function () {
-        clearTimeout(timer);
-        const q = this.value.trim();
-        if (q.length < 2) { box.style.display = 'none'; return; }
-        timer = setTimeout(() => {
-            fetch('{{ route("quittances.search") }}?q=' + encodeURIComponent(q))
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.length) { box.style.display = 'none'; return; }
-                    box.innerHTML = data.map(item => `
-                        <div class="suggestion-item" data-id="${item.id}">
-                            <strong>${item.numero}</strong>
-                        </div>
-                    `).join('');
-                    box.style.display = 'block';
-                    box.querySelectorAll('.suggestion-item').forEach(el => {
-                        el.addEventListener('click', () => window.location.href = '/quittances/' + el.dataset.id);
-                    });
-                });
-        }, 280);
+    const table = $('#quittancesTable').DataTable({
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
+        paging: false,
+        info: false,
+        dom: 'rt',
+        order: [[2, 'desc']], // Sort by Date (newest first)
+        columnDefs: [
+            { type: 'num', targets: [5] },        // Montant as number
+            { type: 'date-eu', targets: [2] },    // Date as date
+            { orderable: false, targets: [1, 3, 4, 6] } // Disable sorting on Ref, Client, Titre, Actions
+        ]
     });
-    document.addEventListener('click', e => {
-        if (!input.contains(e.target) && !box.contains(e.target)) box.style.display = 'none';
-    });
+
+    const input = document.getElementById('quittanceSearchInput');
+    if (input) {
+        input.addEventListener('input', function () {
+            table.search(this.value).draw();
+        });
+    }
 });
 </script>
 @endpush

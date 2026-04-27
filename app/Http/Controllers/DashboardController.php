@@ -21,7 +21,7 @@ class DashboardController extends Controller
             'total_paiements' => Paiement::query()->count(),
             'total_montant' => (float) Paiement::query()->sum('montant'),
             'total_titres' => TitreRecette::query()->count(),
-            'total_agriculteurs' => Agriculteur::query()->count(),
+            'total_agriculteurs' => Agriculteur::whereNull('parent_id')->count(),
             'total_penalites' => (float) TitreRecette::query()->sum('montant_penalite'),
         ];
 
@@ -55,7 +55,7 @@ class DashboardController extends Controller
         ];
 
         // 2. Distribution of Prestations (Top 5)
-        $prestationsDistribution = DB::connection('tenant')->table('titre_prestations')
+        $prestationsDistribution = DB::table('titre_prestations')
             ->join('prestations', 'titre_prestations.prestation_id', '=', 'prestations.id')
             ->select('prestations.libelle', DB::raw('SUM(titre_prestations.total) as total_amount'))
             ->groupBy('prestations.id', 'prestations.libelle')

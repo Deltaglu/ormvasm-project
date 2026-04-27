@@ -21,8 +21,6 @@ class Paiement extends Model
         'titre_recette_id',
     ];
 
-    protected $connection = 'tenant';
-
     protected $casts = [
         'montant' => 'decimal:2',
         'date_paiement' => 'date',

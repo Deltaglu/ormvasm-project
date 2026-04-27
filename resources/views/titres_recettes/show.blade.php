@@ -31,10 +31,10 @@
 
             <div class="detail-grid">
                 <div class="detail-row">
-                    <span class="detail-label">Agriculteur</span>
+                    <span class="detail-label">Client</span>
                     <span class="detail-value fw-semibold">
                         <a href="{{ route('agriculteurs.show', $titreRecette->agriculteur) }}" class="text-decoration-none">
-                            {{ $titreRecette->agriculteur->prenom }} {{ $titreRecette->agriculteur->nom }}
+                            {{ $titreRecette->agriculteur->type === 'society' ? $titreRecette->agriculteur->nom : ($titreRecette->agriculteur->prenom . ' ' . $titreRecette->agriculteur->nom) }}
                         </a>
                     </span>
                 </div>

@@ -10,8 +10,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $connection = 'tenant';
-
     public const ROLE_ADMIN = 'admin';
 
     public const ROLE_AGENT = 'agent';

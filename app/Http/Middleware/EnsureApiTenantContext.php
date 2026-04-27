@@ -24,23 +24,6 @@ class EnsureApiTenantContext
 
         $this->tenantConnectionManager->connect($tenantDatabase, 'pre-fix', 'H3');
 
-        // #region agent log
-        file_put_contents(
-            base_path('debug-2538fb.log'),
-            json_encode([
-                'sessionId' => '2538fb',
-                'runId' => 'pre-fix',
-                'hypothesisId' => 'H3',
-                'location' => 'app/Http/Middleware/EnsureApiTenantContext.php:28',
-                'message' => 'Tenant DB applied from API header',
-                'data' => ['tenant_db' => $tenantDatabase, 'path' => $request->path()],
-                'timestamp' => round(microtime(true) * 1000),
-            ], JSON_UNESCAPED_SLASHES).PHP_EOL,
-            FILE_APPEND
-        );
-        // #endregion
-
         return $next($request);
     }
 }
-

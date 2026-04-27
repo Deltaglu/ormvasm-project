@@ -91,6 +91,21 @@ class PaiementService
     public function regenerateQuittance(Paiement $paiement, ?Quittance $quittance = null): Quittance
     {
         $quittance ??= $paiement->quittance()->firstOrFail();
+        
+        // Recalculate penalty and ensure titre totals are up to date
+        $paiement->load('titreRecette');
+        $titreRecette = $paiement->titreRecette;
+        $titreRecette->calculatePenalty();
+        
+        // Recalculate solde_restant with updated penalty
+        $montantPaye = (float) $titreRecette->paiements()->sum('montant');
+        $soldeRestant = max((float) $titreRecette->montant_total_avec_penalite - $montantPaye, 0);
+        $titreRecette->update([
+            'montant_paye' => $montantPaye,
+            'solde_restant' => $soldeRestant,
+            'statut' => $soldeRestant == 0.0 ? 'SOLDE' : 'PARTIEL',
+        ]);
+        
         $pdfPath = 'quittances/'.$quittance->numero.'.pdf';
 
         $pdf = Pdf::loadView('quittances.pdf', [

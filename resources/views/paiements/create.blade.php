@@ -31,7 +31,7 @@
                 <option value="">— Sélectionner —</option>
                 @foreach($titresRecettes as $titre)
                     <option value="{{ $titre->id }}" @selected(old('titre_recette_id') == $titre->id)>
-                        {{ $titre->numero }} — {{ $titre->agriculteur?->prenom }} {{ $titre->agriculteur?->nom }}
+                        {{ $titre->numero }} — {{ $titre->agriculteur?->type === 'society' ? $titre->agriculteur?->nom : ($titre->agriculteur?->prenom . ' ' . $titre->agriculteur?->nom) }} (Solde: {{ number_format($titre->solde_restant, 2, ',', ' ') }} DH)
                     </option>
                 @endforeach
             </select>

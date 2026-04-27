@@ -2,14 +2,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agriculteur;
+use App\Models\Paiement;
 use App\Models\Prestation;
 use App\Models\TitreRecette;
+use App\Services\PaiementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TitreRecetteController extends Controller
 {
+    public function __construct(private readonly PaiementService $paiementService)
+    {
+    }
+
     public function index(): View
     {
         $titresRecettes = TitreRecette::withTrashed()
@@ -27,7 +33,12 @@ class TitreRecetteController extends Controller
 
     public function create(): View
     {
-        $agriculteurs = Agriculteur::query()->orderBy('nom')->orderBy('prenom')->get();
+        $agriculteurs = Agriculteur::whereNull('parent_id')
+            ->orderBy('type')
+            ->orderBy('nom')
+            ->orderBy('prenom')
+            ->get()
+            ->groupBy('type');
         $prestations = Prestation::query()->orderBy('libelle')->get();
         return view('titres_recettes.create', compact('agriculteurs', 'prestations'));
     }
@@ -90,7 +101,12 @@ class TitreRecetteController extends Controller
 
     public function edit(TitreRecette $titres_recette): View
     {
-        $agriculteurs = Agriculteur::query()->orderBy('nom')->orderBy('prenom')->get();
+        $agriculteurs = Agriculteur::whereNull('parent_id')
+            ->orderBy('type')
+            ->orderBy('nom')
+            ->orderBy('prenom')
+            ->get()
+            ->groupBy('type');
         $prestations = Prestation::query()->orderBy('libelle')->get();
         $titres_recette->load('prestations');
         return view('titres_recettes.edit', [
@@ -143,6 +159,14 @@ class TitreRecetteController extends Controller
         $titres_recette->update($data);
         $titres_recette->prestations()->sync($prestationData);
         $titres_recette->refresh()->calculatePenalty();
+
+        // Regenerate quittances for all payments associated with this titre
+        $titres_recette->load('paiements.quittance');
+        foreach ($titres_recette->paiements as $paiement) {
+            if ($paiement->quittance) {
+                $this->paiementService->regenerateQuittance($paiement->load('titreRecette.agriculteur'));
+            }
+        }
 
         return redirect()->route('titres-recettes.index')->with('status', 'Titre de recette mis a jour.');
     }

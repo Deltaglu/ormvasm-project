@@ -5,8 +5,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-    protected $connection = 'tenant';
-
     protected $table = 'settings';
 
     protected $fillable = [

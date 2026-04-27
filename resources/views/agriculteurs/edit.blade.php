@@ -19,6 +19,26 @@
         @csrf @method('PUT')
 
         <div class="col-md-6">
+            <label class="form-label" for="type">Type <span class="text-danger">*</span></label>
+            <select name="type" id="type" class="form-select @error('type') is-invalid @enderror" required onchange="togglePrenomField()">
+                <option value="individual" {{ old('type', $agriculteur->type) === 'individual' ? 'selected' : '' }}>Particulier</option>
+                <option value="society" {{ old('type', $agriculteur->type) === 'society' ? 'selected' : '' }}>Société</option>
+            </select>
+            @error('type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label" for="parent_id">Société parente</label>
+            <select name="parent_id" id="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
+                <option value="">-- Aucune --</option>
+                @foreach(\App\Models\Agriculteur::where('type', 'society')->where('id', '!=', $agriculteur->id)->get() as $society)
+                    <option value="{{ $society->id }}" {{ old('parent_id', $agriculteur->parent_id) == $society->id ? 'selected' : '' }}>{{ $society->nom }}</option>
+                @endforeach
+            </select>
+            @error('parent_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="col-md-6">
             <label class="form-label" for="nom">Nom <span class="text-danger">*</span></label>
             <input type="text" name="nom" id="nom"
                    class="form-control @error('nom') is-invalid @enderror"
@@ -26,19 +46,19 @@
             @error('nom')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
 
-        <div class="col-md-6">
-            <label class="form-label" for="prenom">Prénom <span class="text-danger">*</span></label>
+        <div class="col-md-6" id="prenom-field">
+            <label class="form-label" for="prenom">Prénom</label>
             <input type="text" name="prenom" id="prenom"
                    class="form-control @error('prenom') is-invalid @enderror"
-                   value="{{ old('prenom', $agriculteur->prenom) }}" required>
+                   value="{{ old('prenom', $agriculteur->prenom) }}">
             @error('prenom')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
 
-        <div class="col-md-6">
-            <label class="form-label" for="cin">CIN <span class="text-danger">*</span></label>
+        <div class="col-md-6" id="cin-field">
+            <label class="form-label" for="cin">CIN <span class="text-danger" id="cin-required">*</span></label>
             <input type="text" name="cin" id="cin"
                    class="form-control @error('cin') is-invalid @enderror"
-                   value="{{ old('cin', $agriculteur->cin) }}" required>
+                   value="{{ old('cin', $agriculteur->cin) }}" placeholder="Numéro CIN unique">
             @error('cin')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
 
@@ -74,4 +94,32 @@
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+function togglePrenomField() {
+    const type = document.getElementById('type').value;
+    const prenomField = document.getElementById('prenom-field');
+    const prenomInput = document.getElementById('prenom');
+    const cinField = document.getElementById('cin-field');
+    const cinInput = document.getElementById('cin');
+    const cinRequired = document.getElementById('cin-required');
+    
+    if (type === 'society') {
+        prenomField.style.display = 'none';
+        prenomInput.value = '';
+        cinField.style.display = 'none';
+        cinInput.value = '';
+    } else {
+        prenomField.style.display = 'block';
+        cinField.style.display = 'block';
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    togglePrenomField();
+});
+</script>
+@endpush
 @endsection

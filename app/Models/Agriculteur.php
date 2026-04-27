@@ -11,9 +11,9 @@ class Agriculteur extends Model
 {
     use SoftDeletes, LogsActivity;
 
-    protected $connection = 'tenant';
-
     protected $fillable = [
+        'type',
+        'parent_id',
         'nom',
         'prenom',
         'cin',
@@ -21,6 +21,16 @@ class Agriculteur extends Model
         'adresse',
         'email',
     ];
+
+    public function parent()
+    {
+        return $this->belongsTo(Agriculteur::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Agriculteur::class, 'parent_id');
+    }
 
     public function titresRecettes(): HasMany
     {

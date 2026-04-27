@@ -61,26 +61,42 @@ class AiAssistantController extends Controller
     private function buildContext(): string
     {
         $stats = [
-            'total_agri' => Agriculteur::count(),
+            'total_agri' => Agriculteur::whereNull('parent_id')->count(),
+            'total_individuals' => Agriculteur::whereNull('parent_id')->where('type', 'individual')->count(),
+            'total_societies' => Agriculteur::whereNull('parent_id')->where('type', 'society')->count(),
             'total_encaissé' => Paiement::sum('montant'),
             'titres_en_retard' => TitreRecette::where('statut', 'en retard')->count(),
         ];
 
-        $topAgris = Agriculteur::withSum('titresRecettes', 'solde_restant')
-            ->orderByDesc('titres_recettes_sum_solde_restant')
-            ->limit(10)
-            ->get(['prenom', 'nom', 'cin'])
-            ->map(fn($a) => "{$a->prenom} {$a->nom} (CIN: {$a->cin}, Dette: " . number_format($a->titres_recettes_sum_solde_restant, 2) . " DH)")
-            ->join(", ");
+        $agriDetails = Agriculteur::whereNull('parent_id')
+            ->with(['titresRecettes' => function($q) {
+                $q->select('id', 'agriculteur_id', 'montant_total', 'montant_penalite', 'montant_paye', 'solde_restant', 'statut', 'date_echeance');
+            }])
+            ->get(['id', 'prenom', 'nom', 'cin', 'type'])
+            ->map(function($a) {
+                $trDetails = $a->titresRecettes->map(function($tr) {
+                    return "TR#{$tr->id}: {$tr->montant_penalite} DH penalty, {$tr->solde_restant} DH solde";
+                })->join(", ");
+                $totalPenalite = $a->titresRecettes->sum('montant_penalite');
+                $totalSolde = $a->titresRecettes->sum('solde_restant');
+                $enRetard = $a->titresRecettes->where('statut', 'en retard')->count();
+                return "{$a->prenom} {$a->nom} ({$a->type}): [{$trDetails}] Total Pénalités: " . number_format($totalPenalite, 2) . " DH, Dette: " . number_format($totalSolde, 2) . " DH, TR en retard: {$enRetard}";
+            })
+            ->join(" | ");
 
-        return "Stats: " . json_encode($stats) . ". Agriculteurs: {$topAgris}.";
+        return "Stats: " . json_encode($stats) . ". Détails agriculteurs: {$agriDetails}.";
     }
 
     private function askLocalBrain($q): JsonResponse
     {
         $q = strtolower($q);
         if (str_contains($q, 'combien') || str_contains($q, 'how many')) {
-            if (str_contains($q, 'agri')) return response()->json(['message' => "Nous avons **" . Agriculteur::count() . " agriculteurs**."]);
+            if (str_contains($q, 'agri')) {
+                $total = Agriculteur::whereNull('parent_id')->count();
+                $individuals = Agriculteur::whereNull('parent_id')->where('type', 'individual')->count();
+                $societies = Agriculteur::whereNull('parent_id')->where('type', 'society')->count();
+                return response()->json(['message' => "Nous avons **{$total} agriculteurs** ({$individuals} particuliers, {$societies} sociétés)."]);
+            }
             if (str_contains($q, 'paiement')) return response()->json(['message' => "Il y a **" . Paiement::count() . " paiements**."]);
         }
         

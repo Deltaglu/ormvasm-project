@@ -12,6 +12,7 @@ class AgriculteurController extends Controller
     public function index(): View
     {
         $agriculteurs = Agriculteur::withTrashed()
+            ->whereNull('parent_id')
             ->orderByRaw('deleted_at IS NOT NULL')
             ->orderBy('nom')
             ->orderBy('prenom')
@@ -22,19 +23,34 @@ class AgriculteurController extends Controller
 
     public function create(): View
     {
-        return view('agriculteurs.create');
+        $parentId = request()->query('parent_id');
+        $parent = $parentId ? Agriculteur::find($parentId) : null;
+        
+        return view('agriculteurs.create', compact('parent'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
+            'type' => ['required', 'in:individual,society'],
+            'parent_id' => ['nullable', 'exists:agriculteurs,id'],
             'nom' => ['required', 'string', 'max:255'],
-            'prenom' => ['required', 'string', 'max:255'],
-            'cin' => ['required', 'string', 'max:32', 'unique:tenant.agriculteurs,cin'],
+            'prenom' => ['nullable', 'string', 'max:255'],
+            'cin' => ['nullable', 'string', 'max:32', 'unique:agriculteurs,cin'],
             'telephone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:255'],
             'adresse' => ['nullable', 'string'],
         ]);
+
+        // For society type, prenom is not required and CIN is optional
+        if ($data['type'] === 'society') {
+            $data['prenom'] = null;
+        } else {
+            // For individual type, CIN is required
+            if (empty($data['cin'])) {
+                return back()->withErrors(['cin' => 'Le CIN est obligatoire pour un particulier.'])->withInput();
+            }
+        }
 
         Agriculteur::query()->create($data);
         
@@ -44,6 +60,8 @@ class AgriculteurController extends Controller
     public function show(Agriculteur $agriculteur): View
     {
         $agriculteur->load([
+            'parent',
+            'children' => function($q) { $q->withTrashed(); },
             'titresRecettes' => function($q) { $q->withTrashed(); },
             'titresRecettes.paiements' => function($q) { $q->withTrashed(); },
             'titresRecettes.paiements.quittance' => function($q) { $q->withTrashed(); }
@@ -62,13 +80,25 @@ class AgriculteurController extends Controller
     public function update(Request $request, Agriculteur $agriculteur): RedirectResponse
     {
         $data = $request->validate([
+            'type' => ['required', 'in:individual,society'],
+            'parent_id' => ['nullable', 'exists:agriculteurs,id'],
             'nom' => ['required', 'string', 'max:255'],
-            'prenom' => ['required', 'string', 'max:255'],
-            'cin' => ['required', 'string', 'max:32', 'unique:tenant.agriculteurs,cin,'.$agriculteur->id],
+            'prenom' => ['nullable', 'string', 'max:255'],
+            'cin' => ['nullable', 'string', 'max:32', 'unique:agriculteurs,cin,'.$agriculteur->id],
             'telephone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:255'],
             'adresse' => ['nullable', 'string'],
         ]);
+
+        // For society type, prenom is not required and CIN is optional
+        if ($data['type'] === 'society') {
+            $data['prenom'] = null;
+        } else {
+            // For individual type, CIN is required
+            if (empty($data['cin'])) {
+                return back()->withErrors(['cin' => 'Le CIN est obligatoire pour un particulier.'])->withInput();
+            }
+        }
 
         $agriculteur->update($data);
         
@@ -104,7 +134,15 @@ class AgriculteurController extends Controller
             }
         }
 
-        $results = $resultsQuery->limit(10)->get(['id', 'nom', 'prenom', 'cin', 'deleted_at']);
+        $results = $resultsQuery->limit(10)->get(['id', 'nom', 'prenom', 'cin', 'type', 'deleted_at']);
+
+        // Format display name for search results
+        $results->transform(function ($item) {
+            $item->display_name = $item->type === 'society' 
+                ? $item->nom 
+                : trim(($item->prenom ?? '') . ' ' . $item->nom);
+            return $item;
+        });
 
         return response()->json($results);
     }

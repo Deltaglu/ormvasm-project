@@ -29,8 +29,10 @@
                 <div class="detail-row">
                     <span class="detail-label">Payeur</span>
                     <span class="detail-value fw-semibold">
-                        {{ $p->titreRecette->agriculteur->prenom }} {{ $p->titreRecette->agriculteur->nom }}
-                        <span class="text-muted fw-normal ms-1">(CIN: {{ $p->titreRecette->agriculteur->cin }})</span>
+                        {{ $p->titreRecette->agriculteur->type === 'society' ? $p->titreRecette->agriculteur->nom : ($p->titreRecette->agriculteur->prenom . ' ' . $p->titreRecette->agriculteur->nom) }}
+                        @if($p->titreRecette->agriculteur->cin)
+                            <span class="text-muted fw-normal ms-1">(CIN: {{ $p->titreRecette->agriculteur->cin }})</span>
+                        @endif
                     </span>
                 </div>
                 <div class="detail-row mt-3 pt-3" style="border-top:1px dashed var(--gray-200);">

@@ -166,12 +166,6 @@
                     <span class="ormsa-brand-sub">Recettes & recouvrement</span>
                 </div>
             </div>
-            @if(session('company_code'))
-                <div class="mt-3 pt-2" style="border-top:1px solid rgba(255,255,255,0.08);">
-                    <div class="ormsa-brand-sub mb-2">Société active</div>
-                    <span class="badge" style="background:rgba(255,255,255,0.15); color:#fff; font-size:.75rem; padding:.35em .65em; font-weight:500; letter-spacing:0.5px;">{{ session('company_code') }}</span>
-                </div>
-            @endif
         </div>
 
         {{-- Navigation --}}
@@ -181,7 +175,7 @@
                 <i class="bi bi-speedometer2"></i> Tableau de bord
             </a>
             <a class="ormsa-nav-link {{ request()->routeIs('agriculteurs.*') ? 'active' : '' }}" href="{{ route('agriculteurs.index') }}">
-                <i class="bi bi-people"></i> Agriculteurs
+                <i class="bi bi-people"></i> Clients
             </a>
             <a href="{{ route('prestations.index') }}" class="ormsa-nav-link {{ request()->routeIs('prestations.*') ? 'active' : '' }}">
                 <i class="bi bi-list-ul"></i> Prestations
@@ -207,9 +201,6 @@
             <div class="ormsa-nav-section">Configuration</div>
             <a class="ormsa-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.edit') }}">
                 <i class="bi bi-percent"></i> Pénalités
-            </a>
-            <a class="ormsa-nav-link {{ request()->routeIs('companies.*') ? 'active' : '' }}" href="{{ route('companies.create') }}">
-                <i class="bi bi-building-add"></i> Nouvelle société
             </a>
         </nav>
 

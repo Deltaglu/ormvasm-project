@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', $agriculteur->prenom.' '.$agriculteur->nom.' — '.config('app.name'))
+@section('title', ($agriculteur->prenom ? $agriculteur->prenom.' ' : '').$agriculteur->nom.' — '.config('app.name'))
 
 @section('content')
-<x-page-header title="{{ $agriculteur->prenom }} {{ $agriculteur->nom }}" subtitle="Fiche agriculteur — historique des titres et paiements.">
+<x-page-header title="{{ $agriculteur->prenom ? $agriculteur->prenom.' ' : '' }}{{ $agriculteur->nom }}" subtitle="Fiche agriculteur — historique des titres et paiements.">
     <div class="d-flex gap-2">
         @if($agriculteur->trashed())
             <form action="{{ route('trash.restore', ['type' => 'agriculteur', 'id' => $agriculteur->id]) }}" method="POST" class="m-0">
@@ -12,6 +12,11 @@
                     <i class="bi bi-arrow-counterclockwise"></i> Restaurer
                 </button>
             </form>
+        @endif
+        @if($agriculteur->type === 'society')
+            <a href="{{ route('agriculteurs.create') }}?parent_id={{ $agriculteur->id }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-person-plus"></i> Ajouter membre
+            </a>
         @endif
         <a href="{{ route('agriculteurs.releve', $agriculteur) }}" class="btn btn-outline-primary btn-sm btn-preview-pdf">
             <i class="bi bi-printer"></i> Imprimer Relevé
@@ -25,6 +30,13 @@
     </div>
 </x-page-header>
 
+{{-- Parent Society --}}
+@if($agriculteur->parent)
+<div class="alert alert-info mb-3">
+    <i class="bi bi-building"></i> Membre de la société : <a href="{{ route('agriculteurs.show', $agriculteur->parent) }}" class="alert-link fw-semibold">{{ $agriculteur->parent->nom }}</a>
+</div>
+@endif
+
 {{-- Info Card --}}
 <div class="row g-3 mb-4">
     <div class="col-lg-5">
@@ -34,9 +46,19 @@
             </div>
             <div class="detail-grid">
                 <div class="detail-row">
+                    <span class="detail-label">Type</span>
+                    <span class="detail-value">
+                        <span class="badge {{ $agriculteur->type === 'society' ? 'text-bg-primary' : 'text-bg-secondary' }}">
+                            {{ $agriculteur->type === 'society' ? 'Société' : 'Particulier' }}
+                        </span>
+                    </span>
+                </div>
+                @if($agriculteur->cin)
+                <div class="detail-row">
                     <span class="detail-label">CIN</span>
                     <span class="detail-value"><code>{{ $agriculteur->cin }}</code></span>
                 </div>
+                @endif
                 <div class="detail-row">
                     <span class="detail-label">Téléphone</span>
                     <span class="detail-value">{{ $agriculteur->telephone ?? '—' }}</span>
@@ -53,6 +75,73 @@
         </div>
     </div>
 </div>
+
+{{-- Children (for societies) --}}
+@if($agriculteur->type === 'society' && $agriculteur->children->count() > 0)
+<div class="ormsa-surface ormsa-table-wrap mb-4">
+    <div class="ormsa-surface-header">
+        <i class="bi bi-people"></i> Membres de la société
+        <span class="ms-auto badge text-bg-light">{{ $agriculteur->children->count() }}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>CIN</th>
+                    <th>Téléphone</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach($agriculteur->children as $child)
+                <tr class="{{ $child->trashed() ? 'table-danger bg-opacity-10' : '' }}">
+                    <td class="fw-medium">{{ $child->nom }}</td>
+                    <td>{{ $child->prenom ?? '—' }}</td>
+                    <td><code>{{ $child->cin ?? '—' }}</code></td>
+                    <td>{{ $child->telephone ?? '—' }}</td>
+                    <td>
+                        <div class="d-flex gap-1 align-items-center">
+                            @if($child->trashed())
+                                <span class="badge bg-danger" style="font-size: 0.65rem; letter-spacing: 0.5px; text-transform: uppercase;">Supprimé</span>
+                            @endif
+                            <a href="{{ route('agriculteurs.show', $child) }}" class="btn btn-outline-primary btn-sm" style="padding:.25rem .5rem;" title="Voir">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            @if($child->trashed())
+                                <form action="{{ route('trash.restore', ['type' => 'agriculteur', 'id' => $child->id]) }}" method="POST" class="m-0">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-success btn-sm" style="padding:.25rem .5rem;" title="Restaurer">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('trash.force-delete', ['type' => 'agriculteur', 'id' => $child->id]) }}" method="POST" class="m-0">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" style="padding:.25rem .5rem;" title="Supprimer Définitivement">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <a href="{{ route('agriculteurs.edit', $child) }}" class="btn btn-outline-warning btn-sm" style="padding:.25rem .5rem;" title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('agriculteurs.destroy', $child) }}" method="POST" class="m-0">
+                                    @csrf @method('DELETE')
+                                    <button type="button" class="btn btn-outline-danger btn-sm btn-delete-confirm" style="padding:.25rem .5rem;" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 {{-- Titres de recette --}}
 <div class="ormsa-surface ormsa-table-wrap mb-4">

@@ -62,6 +62,12 @@
                                 <a href="{{ route('prestations.edit', $prestation) }}" class="btn btn-outline-primary" title="Modifier">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                <form action="{{ route('prestations.destroy', $prestation) }}" method="POST" class="d-inline">
+                                    @csrf @method('DELETE')
+                                    <button type="button" class="btn btn-outline-danger btn-delete-confirm" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -79,7 +85,10 @@ document.addEventListener('DOMContentLoaded', function () {
         paging: false,
         info: false,
         dom: 'rt',
-        order: [[1, 'asc']]
+        order: [[0, 'desc'], [2, 'desc']], // Sort by Code (newest), then Tarif (highest first)
+        columnDefs: [
+            { orderable: false, targets: [1, 3, 4] } // Disable sorting on Libelle, Unite, Actions
+        ]
     });
 
     const input = document.getElementById('prestationSearchInput');

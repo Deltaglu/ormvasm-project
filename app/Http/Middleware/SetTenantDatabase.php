@@ -18,25 +18,8 @@ class SetTenantDatabase
 
         if ($tenantDatabase !== '') {
             $this->tenantConnectionManager->connect($tenantDatabase, 'pre-fix', 'H2');
-
-            // #region agent log
-            file_put_contents(
-                base_path('debug-2538fb.log'),
-                json_encode([
-                    'sessionId' => '2538fb',
-                    'runId' => 'pre-fix',
-                    'hypothesisId' => 'H2',
-                    'location' => 'app/Http/Middleware/SetTenantDatabase.php:24',
-                    'message' => 'Tenant DB applied from session',
-                    'data' => ['tenant_db' => $tenantDatabase, 'path' => $request->path()],
-                    'timestamp' => round(microtime(true) * 1000),
-                ], JSON_UNESCAPED_SLASHES).PHP_EOL,
-                FILE_APPEND
-            );
-            // #endregion
         }
 
         return $next($request);
     }
 }
-

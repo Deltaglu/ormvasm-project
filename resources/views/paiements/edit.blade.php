@@ -30,7 +30,7 @@
             <select name="titre_recette_id" id="titre_recette_id" class="form-select @error('titre_recette_id') is-invalid @enderror" required>
                 @foreach($titresRecettes as $titre)
                     <option value="{{ $titre->id }}" @selected(old('titre_recette_id', $paiement->titre_recette_id) == $titre->id)>
-                        {{ $titre->numero }} — {{ $titre->agriculteur?->prenom }} {{ $titre->agriculteur?->nom }}
+                        {{ $titre->numero }} — {{ $titre->agriculteur?->type === 'society' ? $titre->agriculteur?->nom : ($titre->agriculteur?->prenom . ' ' . $titre->agriculteur?->nom) }}
                     </option>
                 @endforeach
             </select>

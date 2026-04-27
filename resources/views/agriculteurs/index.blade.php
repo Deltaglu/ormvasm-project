@@ -51,9 +51,14 @@
             <tbody>
             @foreach($agriculteurs as $agriculteur)
                 <tr>
-                    <td><code>{{ $agriculteur->cin }}</code></td>
+                    <td><code>{{ $agriculteur->cin ?? '—' }}</code></td>
                     <td class="fw-medium">
-                        {{ $agriculteur->prenom }} {{ $agriculteur->nom }}
+                        @if($agriculteur->type === 'society')
+                            {{ $agriculteur->nom }}
+                            <span class="badge text-bg-primary ms-2" style="font-size: 0.65rem;">Société</span>
+                        @else
+                            {{ $agriculteur->prenom }} {{ $agriculteur->nom }}
+                        @endif
                         @if($agriculteur->trashed())
                             <span class="badge bg-danger ms-2" style="font-size: 0.65rem; letter-spacing: 0.5px; text-transform: uppercase;">Supprimé</span>
                         @endif
@@ -108,7 +113,10 @@ document.addEventListener('DOMContentLoaded', function () {
         paging: false,
         info: false,
         dom: 'rt', 
-        order: []
+        order: [[0, 'desc']], // Sort by CIN (newest first)
+        columnDefs: [
+            { orderable: false, targets: [1, 2, 3, 4] } // Disable sorting on Nom, Telephone, Email, Actions
+        ]
     });
 
     const input = document.getElementById('customSearchInput');
@@ -132,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!data.length) { box.style.display = 'none'; return; }
                     box.innerHTML = data.map(item =>
                         `<div class="suggestion-item" data-id="${item.id}">
-                            <strong>${item.cin}</strong> — ${item.prenom} ${item.nom}
+                            <strong>${item.cin || '—'}</strong> — ${item.display_name}
                         </div>`
                     ).join('');
                     box.style.display = 'block';

@@ -5,10 +5,10 @@
             <i class="bi bi-arrow-counterclockwise"></i> Restaurer
         </button>
     </form>
-    <form action="{{ route('trash.force-delete', [$type, $id]) }}" method="POST" onsubmit="return confirm('Attention: Cette action est irréversible. Supprimer définitivement ?')">
+    <form action="{{ route('trash.force-delete', [$type, $id]) }}" method="POST">
         @csrf
         @method('DELETE')
-        <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">
+        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-confirm d-flex align-items-center gap-1">
             <i class="bi bi-trash"></i> Supprimer
         </button>
     </form>

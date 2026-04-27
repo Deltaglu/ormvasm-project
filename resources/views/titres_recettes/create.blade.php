@@ -34,13 +34,17 @@
         </div>
         
         <div class="col-md-6">
-            <label class="form-label" for="agriculteur_id">Agriculteur <span class="text-danger">*</span></label>
+            <label class="form-label" for="agriculteur_id">Client <span class="text-danger">*</span></label>
             <select name="agriculteur_id" id="agriculteur_id" class="form-select searchable-select" required>
                 <option value="">— Sélectionner —</option>
-                @foreach($agriculteurs as $agriculteur)
-                    <option value="{{ $agriculteur->id }}" @selected(old('agriculteur_id') == $agriculteur->id)>
-                        {{ $agriculteur->prenom }} {{ $agriculteur->nom }}
-                    </option>
+                @foreach($agriculteurs as $type => $group)
+                    <optgroup label="{{ $type === 'individual' ? 'Particuliers' : 'Sociétés' }}">
+                        @foreach($group as $agriculteur)
+                            <option value="{{ $agriculteur->id }}" @selected(old('agriculteur_id') == $agriculteur->id)>
+                                {{ $agriculteur->prenom }} {{ $agriculteur->nom }}
+                            </option>
+                        @endforeach
+                    </optgroup>
                 @endforeach
             </select>
         </div>

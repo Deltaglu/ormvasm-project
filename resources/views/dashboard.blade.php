@@ -10,7 +10,7 @@
     <div class="col">
         <div class="ormsa-stat">
             <div class="ormsa-stat-icon"><i class="bi bi-people-fill"></i></div>
-            <div class="ormsa-stat-label">Agriculteurs</div>
+            <div class="ormsa-stat-label">Clients</div>
             <div class="ormsa-stat-value">{{ $stats['total_agriculteurs'] }}</div>
         </div>
     </div>
@@ -103,7 +103,7 @@
                         <tr>
                             <th>Référence</th>
                             <th>Date</th>
-                            <th>Agriculteur</th>
+                            <th>Client</th>
                             <th>Titre</th>
                             <th class="text-end">Paiement</th>
                             <th class="text-end">Quittance</th>
@@ -115,7 +115,7 @@
                         <tr>
                             <td class="fw-medium">{{ $p->reference }}</td>
                             <td>{{ $p->date_paiement->format('d/m/Y') }}</td>
-                            <td>{{ $t?->agriculteur?->prenom }} {{ $t?->agriculteur?->nom }}</td>
+                            <td>{{ $t?->agriculteur?->type === 'society' ? $t?->agriculteur?->nom : ($t?->agriculteur?->prenom . ' ' . $t?->agriculteur?->nom) }}</td>
                             <td><code class="small">{{ $t?->numero }}</code></td>
                             <td class="text-end"><span class="status-pill status-pill-success">{{ number_format($p->montant, 2, ',', ' ') }} DH</span></td>
                             <td class="text-end">

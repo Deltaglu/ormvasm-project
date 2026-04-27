@@ -16,7 +16,6 @@ class TitreRecette extends Model
     use HasFactory, SoftDeletes, LogsActivity;
 
     protected $table = 'titres_recettes';
-    protected $connection = 'tenant';
 
     protected $fillable = [
         'numero',

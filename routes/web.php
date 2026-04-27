@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AgriculteurController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\PrestationController;
@@ -31,11 +30,6 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-    Route::get('companies/create', [CompanyController::class, 'create'])->name('companies.create');
-    Route::post('companies', [CompanyController::class, 'store'])->name('companies.store');
-});
-
-Route::middleware(['auth', 'tenant.session'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     Route::get('/activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs.index');

@@ -15,14 +15,14 @@
                 ORMVASM<br><span style="color:rgba(255,255,255,.55);font-size:1rem;font-weight:500;letter-spacing:0;">Système de gestion des recettes</span>
             </h2>
             <p class="mb-4" style="color:rgba(255,255,255,.6);line-height:1.75;font-size:.92rem;">
-                Plateforme de gestion des recettes et du recouvrement. Suivi des titres, paiements et quittances par société.
+                Plateforme de gestion des recettes et du recouvrement. Suivi des titres, paiements et quittances.
             </p>
             <ul class="list-unstyled mb-0" style="color:rgba(255,255,255,.65);font-size:.88rem;">
                 <li class="mb-2 d-flex align-items-center gap-2">
-                    <i class="bi bi-check-circle-fill text-success"></i> Multi-tenant par code entreprise
+                    <i class="bi bi-check-circle-fill text-success"></i> Traçabilité des encaissements
                 </li>
                 <li class="mb-2 d-flex align-items-center gap-2">
-                    <i class="bi bi-check-circle-fill text-success"></i> Traçabilité des encaissements
+                    <i class="bi bi-check-circle-fill text-success"></i> Gestion des agriculteurs
                 </li>
                 <li class="d-flex align-items-center gap-2">
                     <i class="bi bi-check-circle-fill text-success"></i> Quittances PDF automatiques
@@ -60,21 +60,11 @@
                     @csrf
 
                     <div class="mb-3">
-                        <label class="form-label" for="company_code">Code entreprise</label>
-                        <input type="text" name="company_code" id="company_code"
-                               value="{{ old('company_code') }}"
-                               class="form-control @error('company_code') is-invalid @enderror"
-                               required autofocus autocomplete="organization"
-                               placeholder="Ex. soc1">
-                        @error('company_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-3">
                         <label class="form-label" for="email">Adresse e-mail</label>
                         <input type="email" name="email" id="email"
                                value="{{ old('email') }}"
                                class="form-control @error('email') is-invalid @enderror"
-                               required autocomplete="username">
+                               required autofocus autocomplete="username">
                         @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
@@ -102,7 +92,7 @@
                 <div class="mt-4 pt-3" style="border-top:1px solid var(--border);">
                     <p class="mb-0" style="font-size:.78rem;color:var(--gray-400);">
                         <strong style="color:var(--gray-500);">Démo :</strong>
-                        <code>soc1</code> · <code>admin@test.com</code> · <code>password</code>
+                        <code>admin@test.com</code> · <code>password</code>
                     </p>
                 </div>
             </div>

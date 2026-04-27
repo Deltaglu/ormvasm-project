@@ -63,7 +63,7 @@
                     <td data-order="{{ $p->date_paiement->format('Y-m-d') }}">{{ $p->date_paiement->format('d/m/Y') }}</td>
                     <td>
                         <div class="fw-medium" style="font-size:.85rem;">{{ $p->titreRecette?->numero }}</div>
-                        <div class="text-muted" style="font-size:.78rem;">{{ $p->titreRecette?->agriculteur?->prenom }} {{ $p->titreRecette?->agriculteur?->nom }}</div>
+                        <div class="text-muted" style="font-size:.78rem;">{{ $p->titreRecette?->agriculteur?->type === 'society' ? $p->titreRecette?->agriculteur?->nom : ($p->titreRecette?->agriculteur?->prenom . ' ' . $p->titreRecette?->agriculteur?->nom) }}</div>
                     </td>
                     <td class="text-end fw-semibold" data-order="{{ $p->montant }}">{{ number_format($p->montant, 2, ',', ' ') }} DH</td>
                     <td><span class="badge text-bg-light">{{ $p->type_paiement }}</span></td>
@@ -130,7 +130,12 @@ document.addEventListener('DOMContentLoaded', function () {
         language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
         paging: false,
         info: false,
-        order: [],
+        order: [[1, 'desc']], // Sort by Date (newest first)
+        columnDefs: [
+            { type: 'num', targets: [3] },       // Montant as number
+            { type: 'date-eu', targets: [1] },   // Date as date
+            { orderable: false, targets: [2, 6, 7] } // Disable sorting on Titre/Client, Quittance, Actions
+        ],
         dom: 'rt',
     });
 

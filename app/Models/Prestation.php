@@ -11,8 +11,6 @@ class Prestation extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity;
 
-    protected $connection = 'tenant';
-
     protected $fillable = [
         'code',
         'libelle',

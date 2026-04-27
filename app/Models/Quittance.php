@@ -17,8 +17,6 @@ class Quittance extends Model
         'montant_paye',
     ];
 
-    protected $connection = 'tenant';
-
     protected $casts = [
         'date_generation' => 'datetime',
         'montant_paye' => 'decimal:2',

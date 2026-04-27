@@ -43,8 +43,9 @@
                     <th>Numéro</th>
                     <th>Émission</th>
                     <th>Échéance</th>
-                    <th>Agriculteur</th>
+                    <th>Client</th>
                     <th class="text-end">Montant</th>
+                    <th class="text-end">Pénalité</th>
                     <th class="text-end">Total</th>
                     <th class="text-end">Solde</th>
                     <th>Statut</th>
@@ -71,8 +72,11 @@
                                 <span class="text-muted">—</span>
                             @endif
                         </td>
-                        <td class="fw-medium">{{ $titre->agriculteur?->prenom }} {{ $titre->agriculteur?->nom }}</td>
+                        <td class="fw-medium">{{ $titre->agriculteur?->type === 'society' ? $titre->agriculteur?->nom : ($titre->agriculteur?->prenom . ' ' . $titre->agriculteur?->nom) }}</td>
                         <td class="text-end" data-order="{{ $titre->montant_total }}">{{ number_format($titre->montant_total, 2, ',', ' ') }} DH</td>
+                        <td class="text-end @if((float) $titre->montant_penalite > 0) text-danger fw-medium @endif" data-order="{{ $titre->montant_penalite }}">
+                            {{ number_format($titre->montant_penalite, 2, ',', ' ') }} DH
+                        </td>
                         <td class="text-end fw-semibold" data-order="{{ $titre->montant_total_avec_penalite }}">{{ number_format($titre->montant_total_avec_penalite, 2, ',', ' ') }} DH</td>
                         <td class="text-end" data-order="{{ $titre->solde_restant }}">{{ number_format($titre->solde_restant, 2, ',', ' ') }} DH</td>
                         <td>
@@ -127,7 +131,12 @@ document.addEventListener('DOMContentLoaded', function () {
         paging: false,
         info: false,
         dom: 'rt',
-        order: []
+        order: [[0, 'desc']], // Sort by Numero (newest first)
+        columnDefs: [
+            { type: 'num', targets: [4, 5, 6, 7] }, // Montant, Penalite, Total, Solde as numbers
+            { type: 'date-eu', targets: [1, 2] },  // Émission, Échéance as dates
+            { orderable: false, targets: [3, 9] } // Disable sorting on Client and Actions
+        ]
     });
 
     const input = document.getElementById('titreSearchInput');

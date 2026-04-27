@@ -12,6 +12,12 @@ class EnsureTenantSession
         $tenantDatabase = (string) $request->session()->get('tenant_db', '');
 
         if ($tenantDatabase === '') {
+            // If user is authenticated but no tenant_db, logout and redirect to login
+            if (auth()->check()) {
+                auth()->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
             return redirect()->route('login')->withErrors([
                 'company_code' => 'Contexte entreprise introuvable. Veuillez vous reconnecter.',
             ]);
