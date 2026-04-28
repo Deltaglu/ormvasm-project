@@ -5,14 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', config('app.name'))</title>
 
-    {{-- Bootstrap CSS --}}
+    {{-- Resource Hints for Performance --}}
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.datatables.net">
+    <link rel="dns-prefetch" href="https://cdn.datatables.net">
+
+    {{-- Critical CSS - Bootstrap --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     {{-- Bootstrap Icons --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     {{-- App CSS (with cache-bust) --}}
     <link href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}" rel="stylesheet">
 
-    {{-- Dark Mode Prevention Script --}}
+    {{-- Dark Mode Prevention Script (Inline - Critical) --}}
     <script>
         (function() {
             const savedTheme = localStorage.getItem('ormvasm-theme') || 'light';
@@ -159,7 +165,7 @@
         <div class="ormsa-brand">
             <div class="d-flex align-items-center gap-3">
                 <div class="ormsa-brand-mark">
-                    <img src="{{ asset('images/logo.png') }}" alt="ORMVA" style="height:2rem; width:auto;">
+                    <img src="{{ asset('images/logo.png') }}" alt="ORMVA" style="height:2rem; width:auto;" loading="lazy">
                 </div>
                 <div>
                     <a class="ormsa-brand-title d-block" href="{{ route('dashboard') }}">ORMVASM</a>
@@ -329,13 +335,14 @@
 
 {{-- Third Party JS --}}
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+{{-- Optimized JavaScript Loading --}}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js" defer></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js" defer></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
