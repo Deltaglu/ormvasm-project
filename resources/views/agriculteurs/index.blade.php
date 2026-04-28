@@ -107,16 +107,18 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize DataTable without the default search box
+    // Initialize DataTable with pagination and page length selector
     const table = $('#agriTable').DataTable({
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
-        paging: false,
-        info: false,
-        dom: 'rt', 
-        order: [[0, 'desc']], // Sort by CIN (newest first)
-        columnDefs: [
-            { orderable: false, targets: [1, 2, 3, 4] } // Disable sorting on Nom, Telephone, Email, Actions
-        ]
+        language: { 
+            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json',
+            lengthMenu: 'Afficher _MENU_ par page'
+        },
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'Tous']],
+        lengthChange: true,
+        ordering: false,
+        dom: '<"d-flex justify-content-between align-items-center mb-3"l>rt<"d-flex justify-content-between align-items-center mt-3"ip>', 
+        info: true
     });
 
     const input = document.getElementById('customSearchInput');

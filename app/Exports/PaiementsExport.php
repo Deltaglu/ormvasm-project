@@ -7,9 +7,12 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class PaiementsExport implements FromCollection, WithHeadings, WithStyles, WithColumnWidths
+class PaiementsExport implements FromCollection, WithHeadings, WithStyles, WithColumnWidths, WithEvents
 {
     /**
     * @return \Illuminate\Support\Collection
@@ -49,6 +52,55 @@ class PaiementsExport implements FromCollection, WithHeadings, WithStyles, WithC
             'Date de création',
         ];
     }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function(AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $sheet->insertNewRowBefore(1, 4);
+                
+                $sheet->setCellValue('A1', 'ORMVASM');
+                $sheet->mergeCells('A1:K1');
+                $sheet->getStyle('A1')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => '1a3c6e']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                ]);
+                
+                $sheet->setCellValue('A2', 'LISTE DES PAIEMENTS');
+                $sheet->mergeCells('A2:K2');
+                $sheet->getStyle('A2')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 14, 'color' => ['rgb' => '333333']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+                
+                $sheet->setCellValue('A3', 'Date d\'export: ' . now()->format('d/m/Y H:i'));
+                $sheet->mergeCells('A3:K3');
+                $sheet->getStyle('A3')->applyFromArray([
+                    'font' => ['size' => 10, 'color' => ['rgb' => '666666']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+                
+                $sheet->setCellValue('A4', 'Président: ___________________');
+                $sheet->setCellValue('F4', 'Trésorier: ___________________');
+                $sheet->getStyle('A4:F4')->applyFromArray([
+                    'font' => ['size' => 10, 'color' => ['rgb' => '666666']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+                
+                $sheet->getRowDimension(1)->setRowHeight(25);
+                $sheet->getRowDimension(2)->setRowHeight(20);
+                $sheet->getRowDimension(3)->setRowHeight(15);
+                $sheet->getRowDimension(4)->setRowHeight(15);
+                
+                $sheet->getStyle('A5:K5')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 12, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '1a3c6e']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
+            },
+        ];
+    }
     
     private function getClientName($agriculteur): string
     {
@@ -60,15 +112,8 @@ class PaiementsExport implements FromCollection, WithHeadings, WithStyles, WithC
     
     public function styles(Worksheet $sheet)
     {
-        // Header styling
-        $sheet->getStyle('A1:K1')->applyFromArray([
-            'font' => ['bold' => true, 'size' => 12, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '1a3c6e']],
-        ]);
-        
-        // Find all rows and apply conditional formatting
         $highestRow = $sheet->getHighestRow();
-        for ($row = 2; $row <= $highestRow; $row++) {
+        for ($row = 6; $row <= $highestRow; $row++) {
             // Style montant column (F) with right alignment
             $sheet->getStyle('F' . $row)->getAlignment()->setHorizontal('right');
             

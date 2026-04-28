@@ -61,7 +61,7 @@
             @else
                 <div style="height: 90px; width: 180px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999; font-size: 9px;">LOGO</div><br>
             @endif
-            <strong>ORMSA Management System</strong><br>
+            <strong>ORMVASM</strong><br>
             <small>Office Régional de Mise en Valeur Agricole</small>
         </td>
 

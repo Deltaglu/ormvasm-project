@@ -127,16 +127,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const table = $('#paiementsTable').DataTable({
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
-        paging: false,
-        info: false,
-        order: [[1, 'desc']], // Sort by Date (newest first)
-        columnDefs: [
-            { type: 'num', targets: [3] },       // Montant as number
-            { type: 'date-eu', targets: [1] },   // Date as date
-            { orderable: false, targets: [2, 6, 7] } // Disable sorting on Titre/Client, Quittance, Actions
-        ],
-        dom: 'rt',
+        language: { 
+            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json',
+            lengthMenu: 'Afficher _MENU_ par page'
+        },
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'Tous']],
+        lengthChange: true,
+        ordering: false,
+        dom: '<"d-flex justify-content-between align-items-center mb-3"l>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+        info: true
     });
 
     // Custom filtering function which will search data in column four between two values

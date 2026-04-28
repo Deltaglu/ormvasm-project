@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Quittance;
 use App\Services\PaiementService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -37,8 +38,16 @@ class QuittanceController extends Controller
         }
         
         $quittances = $query->latest()->paginate(15)->appends($request->all());
+        
+        // Get quittances from last 10 days for RG8 export
+        $rg8Quittances = Quittance::with(['paiement.titreRecette.agriculteur'])
+            ->whereHas('paiement', function($q) {
+                $q->where('date_paiement', '>=', now()->subDays(10));
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return view('quittances.index', compact('quittances'));
+        return view('quittances.index', compact('quittances', 'rg8Quittances'));
     }
 
     public function show(Quittance $quittance): View
@@ -104,5 +113,23 @@ class QuittanceController extends Controller
         $results = $resultsQuery->limit(10)->get(['id', 'numero', 'paiement_id']);
 
         return response()->json($results);
+    }
+    
+    public function rg8()
+    {
+        $quittances = Quittance::with(['paiement.titreRecette.agriculteur'])
+            ->whereHas('paiement', function($q) {
+                $q->where('date_paiement', '>=', now()->subDays(10));
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $total = $quittances->sum(fn($q) => $q->paiement->montant);
+        $periodStart = now()->subDays(10)->format('d/m/Y');
+        $periodEnd = now()->format('d/m/Y');
+        
+        $pdf = Pdf::loadView('quittances.rg8', compact('quittances', 'total', 'periodStart', 'periodEnd'));
+        
+        return $pdf->stream('RG8_Quittances_' . now()->format('Y-m-d') . '.pdf');
     }
 }

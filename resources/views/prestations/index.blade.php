@@ -81,14 +81,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const table = $('#prestationTable').DataTable({
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
-        paging: false,
-        info: false,
-        dom: 'rt',
-        order: [[0, 'desc'], [2, 'desc']], // Sort by Code (newest), then Tarif (highest first)
-        columnDefs: [
-            { orderable: false, targets: [1, 3, 4] } // Disable sorting on Libelle, Unite, Actions
-        ]
+        language: { 
+            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json',
+            lengthMenu: 'Afficher _MENU_ par page'
+        },
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'Tous']],
+        lengthChange: true,
+        ordering: false,
+        dom: '<"d-flex justify-content-between align-items-center mb-3"l>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+        info: true
     });
 
     const input = document.getElementById('prestationSearchInput');

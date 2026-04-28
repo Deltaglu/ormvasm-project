@@ -15,7 +15,7 @@
     {{-- Dark Mode Prevention Script --}}
     <script>
         (function() {
-            const savedTheme = localStorage.getItem('ormsa-theme') || 'light';
+            const savedTheme = localStorage.getItem('ormvasm-theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             
             document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('ormsa-theme', newTheme);
+            localStorage.setItem('ormvasm-theme', newTheme);
             
             if (window.ApexCharts) {
                 window.dispatchEvent(new Event('resize')); 

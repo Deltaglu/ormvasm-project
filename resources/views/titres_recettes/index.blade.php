@@ -127,16 +127,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const table = $('#titreTable').DataTable({
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json' },
-        paging: false,
-        info: false,
-        dom: 'rt',
-        order: [[0, 'desc']], // Sort by Numero (newest first)
-        columnDefs: [
-            { type: 'num', targets: [4, 5, 6, 7] }, // Montant, Penalite, Total, Solde as numbers
-            { type: 'date-eu', targets: [1, 2] },  // Émission, Échéance as dates
-            { orderable: false, targets: [3, 9] } // Disable sorting on Client and Actions
-        ]
+        language: { 
+            url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json',
+            lengthMenu: 'Afficher _MENU_ par page'
+        },
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'Tous']],
+        lengthChange: true,
+        ordering: false,
+        dom: '<"d-flex justify-content-between align-items-center mb-3"l>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+        info: true
     });
 
     const input = document.getElementById('titreSearchInput');

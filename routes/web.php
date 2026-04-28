@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
     Route::get('quittances/export', function() {
         return Excel::download(new QuittancesExport, 'quittances.xlsx');
     })->name('quittances.export');
+    Route::get('quittances/rg8', [QuittanceController::class, 'rg8'])->name('quittances.rg8');
     Route::get('quittances', [QuittanceController::class, 'index'])->name('quittances.index');
     Route::get('quittances/{quittance}', [QuittanceController::class, 'show'])->name('quittances.show')->withTrashed();
     Route::get('quittances/{quittance}/pdf', [QuittanceController::class, 'pdf'])->name('quittances.pdf')->withTrashed();
