@@ -368,12 +368,36 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = deleteBtn.closest('form');
             Swal.fire({
                 title: 'Êtes-vous sûr ?',
-                text: "Cette action est irréversible.",
+                text: "L'élément sera déplacé dans la corbeille et pourra être restauré.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Oui, supprimer !',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    });
+
+    // Force Delete Confirmation - Permanent Delete (from trash)
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.btn-force-delete-confirm');
+        if (deleteBtn) {
+            e.preventDefault();
+            const form = deleteBtn.closest('form');
+            Swal.fire({
+                title: 'Êtes-vous sûr ?',
+                text: "Cette action est irréversible. L'élément sera définitivement supprimé.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Oui, supprimer définitivement',
                 cancelButtonText: 'Annuler',
                 reverseButtons: true
             }).then((result) => {
