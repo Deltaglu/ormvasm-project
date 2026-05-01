@@ -15,10 +15,10 @@
     </div>
 
     @if($rg8Quittances->count() > 0)
-    {{-- RG8 PDF Export Button --}}
+    {{-- RG8 PDF Export Button - Accumulated Quittance PDFs --}}
     <div class="px-3 pt-3 pb-0">
         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#rg8Modal">
-            <i class="bi bi-file-earmark-pdf"></i> RG8 _ Quittance (10 jours)
+            <i class="bi bi-file-earmark-pdf"></i> RG8 - Toutes les quittances (10 jours)
         </button>
     </div>
 
@@ -29,7 +29,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
-                        RG8 - Quittances (10 derniers jours)
+                        RG8 - Toutes les quittances accumulées (10 derniers jours)
                     </h5>
                     <div class="d-flex gap-2 align-items-center">
                         <a href="{{ route('quittances.rg8') }}" class="btn btn-outline-primary btn-sm" target="_blank">

@@ -124,12 +124,45 @@ class QuittanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        $total = $quittances->sum(fn($q) => $q->paiement->montant);
-        $periodStart = now()->subDays(10)->format('d/m/Y');
-        $periodEnd = now()->format('d/m/Y');
+        // If no quittances, return empty PDF
+        if ($quittances->isEmpty()) {
+            $pdf = Pdf::loadView('quittances.rg8', ['quittances' => $quittances, 'total' => 0, 'periodStart' => now()->subDays(10)->format('d/m/Y'), 'periodEnd' => now()->format('d/m/Y')]);
+            return $pdf->stream('RG8_Quittances_' . now()->format('Y-m-d') . '.pdf');
+        }
+
+        // Initialize PDF merger
+        $pdfMerger = new \setasign\Fpdi\Tcpdf\Fpdi();
         
-        $pdf = Pdf::loadView('quittances.rg8', compact('quittances', 'total', 'periodStart', 'periodEnd'));
+        foreach ($quittances as $quittance) {
+            // Regenerate PDF if missing
+            if (!$quittance->chemin_pdf || !Storage::disk('public')->exists($quittance->chemin_pdf)) {
+                $quittance = app(PaiementService::class)->regenerateQuittance($quittance->paiement, $quittance);
+            }
+            
+            // Add PDF to merger if it exists
+            if ($quittance->chemin_pdf && Storage::disk('public')->exists($quittance->chemin_pdf)) {
+                $pdfPath = Storage::disk('public')->path($quittance->chemin_pdf);
+                $pageCount = $pdfMerger->setSourceFile($pdfPath);
+                
+                for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                    $templateId = $pdfMerger->importPage($pageNo);
+                    $size = $pdfMerger->getTemplateSize($templateId);
+                    
+                    // Add page with appropriate orientation
+                    $orientation = ($size['width'] > $size['height']) ? 'L' : 'P';
+                    $pdfMerger->AddPage($orientation, [$size['width'], $size['height']]);
+                    $pdfMerger->useTemplate($templateId);
+                }
+            }
+        }
         
-        return $pdf->stream('RG8_Quittances_' . now()->format('Y-m-d') . '.pdf');
+        // Generate output filename
+        $filename = 'RG8_Quittances_' . now()->format('Y-m-d') . '.pdf';
+        
+        // Stream the merged PDF
+        return response($pdfMerger->Output($filename, 'S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"'
+        ]);
     }
 }
